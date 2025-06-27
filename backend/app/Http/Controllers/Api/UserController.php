@@ -6,57 +6,38 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreUserRequest;
 use App\Http\Requests\Api\UpdateUserRequest;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreUserRequest $request)
+    public function store(StoreUserRequest $request): JsonResponse
     {
-        $userData = $request->validated();
-
-        $user = User::create($userData);
+        $user = User::create($request->validated());
 
         return response()->json([
             'message' => 'User created successfully',
-            'user' => $user,
+            'data' => $user,
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(User $user)
+    public function show(User $user): JsonResponse
     {
         return response()->json([
-            'user' => $user,
+            'data' => $user,
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
-        $data = $request->validated();
-
-        if (isset($data['password'])) {
-            $data['password'] = bcrypt($data['password']);
-        }
-
-        $user->update($data);
+        $user->update($request->validated());
 
         return response()->json([
             'message' => 'User updated successfully',
-            'user' => $user->fresh(),
+            'data' => $user->fresh(),
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
+    public function destroy(User $user): JsonResponse
     {
         $user->delete();
 

@@ -11,17 +11,26 @@ class PostControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
-    public function testIndex(): void
-    {
-        $user = User::factory()->create();
-        $posts = Post::factory()->count(2)->for($user)->create();
+    protected User $user;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+        $this->actingAs($this->user);
+    }
+
+    public function testPostsByUser(): void
+    {
+        $posts = Post::factory()->count(2)->for($this->user)->create();
         Post::factory()->count(2)->create();
 
-        $response = $this->actingAs($user)->getJson('/api/posts');
+        $response = $this->getJson(
+            route('posts.user', $this->user->id)
+        );
 
-        $response->assertStatus(200);
-        $response->assertJsonCount(2);
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
 
         $response->assertJsonFragment(['id' => $posts[0]->id]);
         $response->assertJsonFragment(['id' => $posts[1]->id]);
@@ -29,86 +38,74 @@ class PostControllerTest extends TestCase
 
     public function testStore(): void
     {
-        $user = User::factory()->create();
-
-        $postData = [
+        $newPostData = [
             'text' => fake()->paragraph(),
-            'user_id' => $user->id,
+            'user_id' => $this->user->id,
         ];
 
-        $response = $this->actingAs($user)->postJson('/api/posts', $postData);
+        $response = $this->postJson(route('posts.store'), $newPostData);
 
-        $response->assertStatus(201)
+        $response->assertCreated()
             ->assertJson([
                 'message' => 'Post created successfully',
-                'post' => [
-                    'user_id' => $user->id,
+                'data' => [
+                    'text' => $newPostData['text'],
+                    'user_id' => $this->user->id,
                 ],
             ]);
 
-        $this->assertDatabaseHas('posts', $postData);
+        $this->assertDatabaseHas('posts', [
+            'text' => $newPostData['text'],
+            'user_id' => $this->user->id,
+        ]);
     }
 
     public function testShow(): void
     {
-        $user = User::factory()->create();
-        $post = Post::factory()->for($user)->create();
+        $post = Post::factory()->for($this->user)->create();
 
-        $this->actingAs($user);
-
-        $response = $this->getJson("/api/posts/{$post->id}");
+        $response = $this->getJson(route('posts.show', $post->id));
 
         $response->assertOk()
-            ->assertJsonStructure([
-                'post' => [
-                    'id',
-                    'text',
-                    'user_id',
+            ->assertJson([
+                'data' => [
+                    'id' => $post->id,
+                    'text' => $post->text,
+                    'user_id' => $post->user_id,
                 ]
-            ])
-            ->assertJsonFragment([
-                'user_id' => $user->id,
             ]);
     }
 
     public function testUpdate(): void
     {
-        $user = User::factory()->create();
-        $post = Post::factory()->for($user)->create();
-
-        $newData = [
+        $post = Post::factory()->for($this->user)->create();
+        $updatedPostData = [
             'text' => fake()->paragraph(),
         ];
 
-        $this->actingAs($user)
-            ->putJson("/api/posts/{$post->id}", $newData)
-            ->assertOk()
-            ->assertJsonStructure([
-                'message',
-                'post' => [
-                    'text',
-                ],
-            ])
+        $response = $this->putJson(
+            route('posts.update', $post->id), $updatedPostData
+        );
+
+        $response->assertOk()
             ->assertJson([
                 'message' => 'Post updated successfully',
-                'post' => [
-                    'text' => $newData['text'],
+                'data' => [
+                    'text' => $updatedPostData['text'],
                 ],
             ]);
 
         $this->assertDatabaseHas('posts', [
             'id' => $post->id,
-            'text' => $newData['text'],
+            'text' => $updatedPostData['text'],
         ]);
     }
 
     public function testDestroy(): void
     {
-        $user = User::factory()->create();
-        $post = Post::factory()->for($user)->create();
+        $post = Post::factory()->for($this->user)->create();
 
-        $response = $this->actingAs($user)
-            ->deleteJson("/api/posts/{$post->id}");
+        $response = $this->deleteJson(route('posts.destroy', $post->id));
 
         $response->assertOk()
             ->assertJson([

@@ -18,16 +18,16 @@ return new class extends Migration
             $table->uuid('receiver_id');
             $table->timestamps();
 
-            $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('receiver_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('sender_id')
+                ->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('receiver_id')
+                ->references('id')->on('users')->onDelete('cascade');
         });
     }
 
     /**
      * Reverse the migrations.
      */
-
-
     public function down(): void
     {
         Schema::dropIfExists('messages');

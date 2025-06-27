@@ -6,67 +6,48 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StorePostRequest;
 use App\Http\Requests\Api\UpdatePostRequest;
 use App\Models\Post;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function postsByUser(User $user): JsonResponse
     {
-        $user = Auth::user();
-
         $posts = $user->posts()->latest()->get();
 
-        return response()->json($posts);
+        return response()->json([
+            'data' => $posts,
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StorePostRequest $request)
+    public function store(StorePostRequest $request): JsonResponse
     {
-        $postData = $request->validated();
-
-        $post = Post::create($postData);
+        $post = Post::create($request->validated());
 
         return response()->json([
             'message' => 'Post created successfully',
-            'post' => $post,
+            'data' => $post,
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Post $post)
+    public function show(Post $post): JsonResponse
     {
         return response()->json([
-            'post' => $post,
+            'data' => $post,
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdatePostRequest $request, Post $post)
+    public function update(UpdatePostRequest $request, Post $post): JsonResponse
     {
-        $data = $request->validated();
-
-        $post->update($data);
+        $post->update($request->validated());
 
         return response()->json([
             'message' => 'Post updated successfully',
-            'post' => $post->fresh(),
+            'data' => $post->fresh(),
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Post $post)
+    public function destroy(Post $post): JsonResponse
     {
         $post->delete();
 

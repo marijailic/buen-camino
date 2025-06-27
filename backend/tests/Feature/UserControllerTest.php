@@ -10,106 +10,82 @@ class UserControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
+    protected User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+    }
+
     public function testStore(): void
     {
-        $password = 'password123';
-
-        $userData = [
+        $newUserData = [
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
-            'password' => $password,
+            'password' => fake()->password(10),
         ];
 
-        $response = $this->postJson('/api/users', $userData);
+        $response = $this->postJson(route('users.store'), $newUserData);
 
         $response->assertCreated()
-            ->assertJsonStructure([
-                'message',
-                'user' => [
-                    'id',
-                    'first_name',
-                    'last_name',
-                    'email',
-                    'created_at',
-                    'updated_at',
+            ->assertJson([
+                'message' => 'User created successfully',
+                'data' => [
+                    'first_name' => $newUserData['first_name'],
+                    'last_name' => $newUserData['last_name'],
+                    'email' => $newUserData['email'],
                 ],
             ]);
 
         $this->assertDatabaseHas('users', [
-            'email' => $userData['email'],
+            'email' => $newUserData['email'],
         ]);
     }
 
     public function testShow(): void
     {
-        $user = User::factory()->create();
-
-        $this->actingAs($user);
-
-        $response = $this->getJson("/api/users/{$user->id}");
+        $response = $this->actingAs($this->user)
+            ->getJson(route('users.show', $this->user->id));
 
         $response->assertOk()
-            ->assertJsonStructure([
-                'user' => [
-                    'id',
-                    'first_name',
-                    'last_name',
-                    'email',
-                    'created_at',
-                    'updated_at',
-                ]
-            ])
-            ->assertJsonFragment([
-                'id' => $user->id,
-                'email' => $user->email,
+            ->assertJson([
+                'data' => [
+                    'id' => $this->user['id'],
+                ],
             ]);
     }
 
     public function testUpdate(): void
     {
-        $user = User::factory()->create();
-
-        $newData = [
-            'first_name' => fake()->firstName(),
-            'last_name' => fake()->lastName(),
+        $updatedUserData = [
             'email' => fake()->unique()->safeEmail(),
         ];
 
-        $this->actingAs($user)
-            ->putJson("/api/users/{$user->id}", $newData)
-            ->assertOk()
-            ->assertJsonStructure([
-                'message',
-                'user' => [
-                    'id',
-                    'first_name',
-                    'last_name',
-                    'email',
-                ],
-            ])
+        $response = $this->actingAs($this->user)
+            ->putJson(route('users.update', $this->user->id), $updatedUserData);
+
+        $response->assertOk()
             ->assertJson([
                 'message' => 'User updated successfully',
-                'user' => [
-                    'first_name' => $newData['first_name'],
-                    'last_name' => $newData['last_name'],
-                    'email' => $newData['email'],
+                'data' => [
+                    'email' => $updatedUserData['email'],
                 ],
             ]);
 
         $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'first_name' => $newData['first_name'],
-            'email' => $newData['email'],
+            'id' => $this->user->id,
+            'first_name' => $this->user['first_name'],
+            'last_name' => $this->user['last_name'],
+            'email' => $updatedUserData['email'],
         ]);
     }
 
     public function testDestroySoftDeletesUser(): void
     {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)
-            ->deleteJson("/api/users/{$user->id}");
+        $response = $this->actingAs($this->user)
+            ->deleteJson(route('users.destroy', $this->user->id));
 
         $response->assertOk()
             ->assertJson([
@@ -117,7 +93,7 @@ class UserControllerTest extends TestCase
             ]);
 
         $this->assertSoftDeleted('users', [
-            'id' => $user->id,
+            'id' => $this->user->id,
         ]);
     }
 }

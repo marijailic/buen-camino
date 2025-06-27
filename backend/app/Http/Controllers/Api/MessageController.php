@@ -7,68 +7,58 @@ use App\Http\Requests\Api\GetMessageRequest;
 use App\Http\Requests\Api\StoreMessageRequest;
 use App\Models\Message;
 use App\Models\User;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class MessageController extends Controller
 {
-    public function allMessagesByReceiver(GetMessageRequest $request, User $receiver)
+    public function messagesByReceiver(GetMessageRequest $request, User $receiver): JsonResponse
     {
-        $messages = Message::where('sender_id', auth()->id())
-            ->where('receiver_id', $receiver->id)
+        $authUserId = auth()->id();
+        $receiverId = $receiver->id;
+
+        $messages = Message::with(['sender', 'receiver'])
+            ->where(function ($query) use ($authUserId, $receiverId) {
+                $query->where('sender_id', $authUserId)
+                    ->where('receiver_id', $receiverId);
+            })
+            ->orWhere(function ($query) use ($authUserId, $receiverId) {
+                $query->where('sender_id', $receiverId)
+                    ->where('receiver_id', $authUserId);
+            })
             ->orderBy('created_at', 'desc')
-            ->paginate($request->input('per_page', 10));
+            ->paginate($request->validated()['per_page'] ?? 10);
 
         return response()->json($messages);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreMessageRequest $request)
+    public function store(StoreMessageRequest $request): JsonResponse
     {
-        $validated = $request->validated();
-
-        $message = Message::create([
-            'text' => $validated['text'],
-            'sender_id' => $validated['sender_id'],
-            'receiver_id' => $validated['receiver_id'],
-        ]);
+        $message = Message::create($request->validated());
 
         return response()->json([
-            'message' => 'Message sent successfully',
+            'message' => 'Message created successfully',
             'data' => $message,
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Message $message)
+    public function show(Message $message): JsonResponse
     {
         return response()->json([
-            'message' => $message,
+            'data' => $message,
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(StoreMessageRequest $request, Message $message)
+    public function update(StoreMessageRequest $request, Message $message): JsonResponse
     {
-        $data = $request->validated();
-
-        $message->update($data);
+        $message->update($request->validated());
 
         return response()->json([
             'message' => 'Message updated successfully',
-            'messageData' => $message->fresh(),
+            'data' => $message->fresh(),
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Message $message)
+    public function destroy(Message $message): JsonResponse
     {
         $message->delete();
 

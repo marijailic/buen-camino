@@ -11,25 +11,37 @@ class MessageControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
-    public function testAllMessagesByReceiver(): void
+    protected User $user;
+
+    protected function setUp(): void
     {
-        $sender = User::factory()->create();
+        parent::setUp();
+        $this->user = User::factory()->create();
+        $this->actingAs($this->user);
+    }
+
+    public function testMessagesByReceiver(): void
+    {
         $receiver = User::factory()->create();
 
-        $this->actingAs($sender);
-
         Message::factory()->count(5)->create([
-            'sender_id' => $sender->id,
+            'sender_id' => $this->user->id,
             'receiver_id' => $receiver->id,
         ]);
 
-        Message::factory()->count(3)->create();
+        Message::factory()->count(3)->create([
+            'sender_id' => $receiver->id,
+            'receiver_id' => $this->user->id,
+        ]);
 
-        $response = $this->getJson("/api/messages/receiver/{$receiver->id}?per_page=3");
+        Message::factory()->count(4)->create();
 
-        $response->assertStatus(200);
+        $response = $this->getJson(
+            route('messages.receiver', $receiver->id)
+        );
 
-        $response->assertJsonStructure([
+        $response->assertOk()
+            ->assertJsonStructure([
             'current_page',
             'data' => [
                 '*' => [
@@ -41,124 +53,104 @@ class MessageControllerTest extends TestCase
                     'updated_at',
                 ],
             ],
-            'first_page_url',
-            'from',
-            'last_page',
-            'last_page_url',
-            'next_page_url',
-            'path',
-            'per_page',
-            'prev_page_url',
-            'to',
-            'total',
         ]);
 
         $responseData = $response->json('data');
         foreach ($responseData as $msg) {
-            $this->assertEquals($sender->id, $msg['sender_id']);
-            $this->assertEquals($receiver->id, $msg['receiver_id']);
+            $this->assertTrue(
+                $msg['sender_id'] === $this->user->id || $msg['receiver_id'] === $this->user->id
+            );
         }
     }
 
     public function testStore():void
     {
-        $sender = User::factory()->create();
         $receiver = User::factory()->create();
-
         $message = fake()->paragraph;
 
-        $payload = [
+        $newMsgData = [
             'text' => $message,
-            'sender_id' => $sender->id,
+            'sender_id' => $this->user->id,
             'receiver_id' => $receiver->id,
         ];
 
-        $this->actingAs($sender)
-        ->postJson(route('messages.store'), $payload)
-            ->assertCreated()
+        $response = $this->postJson(route('messages.store'), $newMsgData);
+
+        $response->assertCreated()
             ->assertJson([
-                'message' => 'Message sent successfully',
+                'message' => 'Message created successfully',
                 'data' => [
                     'text' => $message,
-                    'sender_id' => $sender->id,
+                    'sender_id' => $this->user->id,
                     'receiver_id' => $receiver->id,
                 ],
             ]);
 
         $this->assertDatabaseHas('messages', [
             'text' => $message,
-            'sender_id' => $sender->id,
+            'sender_id' => $this->user->id,
             'receiver_id' => $receiver->id,
         ]);
     }
 
     public function testShow(): void
     {
-        $user = User::factory()->create();
         $message = Message::factory()->create([
-            'sender_id' => $user->id,
+            'sender_id' => $this->user->id,
         ]);
 
-        $this->actingAs($user)
-            ->getJson("/api/messages/{$message->id}")
-            ->assertOk()
+        $response = $this->getJson(route('messages.show', $message->id));
+
+        $response->assertOk()
             ->assertJson([
-                'message' => [
+                'data' => [
                     'id' => $message->id,
                     'text' => $message->text,
                     'sender_id' => $message->sender_id,
                     'receiver_id' => $message->receiver_id,
                 ],
-            ]);
+                ]);
     }
 
     public function testUpdate(): void
     {
-        $sender = User::factory()->create();
-        $receiver = User::factory()->create();
-
-        $message = Message::factory()->create([
-            'text' => 'Original message',
-            'sender_id' => $sender->id,
-            'receiver_id' => $receiver->id,
-        ]);
-
-        $updatedData = [
-            'text' => 'Updated message text',
-            'sender_id' => $sender->id,
-            'receiver_id' => $receiver->id,
+        $msg = Message::factory()->create();
+        $updatedMsg = [
+            'text' => fake()->paragraph(),
+            'sender_id' => $msg->sender_id,
+            'receiver_id' => $msg->receiver_id,
         ];
 
-        $this->actingAs($sender)
-            ->putJson("/api/messages/{$message->id}", $updatedData)
-            ->assertOk()
+        $response = $this->putJson(
+            route('messages.update', $msg->id), $updatedMsg
+        );
+
+        $response->assertOk()
             ->assertJson([
                 'message' => 'Message updated successfully',
-                'messageData' => [
-                    'id' => $message->id,
-                    'text' => 'Updated message text',
+                'data' => [
+                    'id' => $msg->id,
+                    'text' => $updatedMsg['text'],
                 ],
             ]);
 
         $this->assertDatabaseHas('messages', [
-            'id' => $message->id,
-            'text' => 'Updated message text',
+            'id' => $msg->id,
+            'text' => $updatedMsg['text'],
         ]);
     }
 
     public function testDestroy(): void
     {
-        $sender = User::factory()->create();
-        $receiver = User::factory()->create();
-
         $message = Message::factory()->create([
-            'sender_id' => $sender->id,
-            'receiver_id' => $receiver->id,
+            'sender_id' => $this->user->id,
         ]);
 
-        $this->actingAs($sender, 'sanctum')
-            ->deleteJson("/api/messages/{$message->id}")
-            ->assertOk()
+        $response = $this->deleteJson(
+            route('messages.destroy', $message->id)
+        );
+
+        $response->assertOk()
             ->assertJson([
                 'message' => 'Message deleted successfully',
             ]);

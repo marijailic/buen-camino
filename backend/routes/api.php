@@ -6,30 +6,28 @@ use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/users', [UserController::class, 'store']);
+Route::post('/users', [UserController::class, 'store'])->name('users.store');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-Route::middleware('auth:sanctum')
-    ->apiResource('users', UserController::class)
-    ->except('store');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::middleware('auth:sanctum')
-    ->apiResource('posts', PostController::class);
+    Route::apiResource('users', UserController::class)
+        ->except(['store', 'index']);
 
-Route::middleware('auth:sanctum')
-    ->get('/messages/receiver/{user}',
-        [MessageController::class, 'allMessagesByReceiver']
-    );
+    Route::prefix('posts')->group(function () {
+            Route::get('/user/{user}', [PostController::class, 'postsByUser'])
+                ->name('posts.user');
+        });
 
-Route::middleware('auth:sanctum')
-    ->apiResource('messages', MessageController::class)
-    ->except('index');
+    Route::apiResource('posts', PostController::class)
+        ->except('index');
 
-Route::controller(AuthController::class)->group(function () {
+    Route::prefix('messages')->group(function () {
+            Route::get('/receiver/{user}', [MessageController::class, 'messagesByReceiver'])
+                ->name('messages.receiver');
+        });
 
-    Route::post('/login', 'login')->name('login');
-
-    Route::post('/logout', 'logout')->name('logout')
-        ->middleware('auth:sanctum');
-
+    Route::apiResource('messages', MessageController::class)
+        ->except('index');
 });
-
