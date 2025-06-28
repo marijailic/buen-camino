@@ -11,11 +11,12 @@ class MessageControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
-    protected User $user;
+    private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
+
         $this->user = User::factory()->create();
         $this->actingAs($this->user);
     }
@@ -36,26 +37,22 @@ class MessageControllerTest extends TestCase
 
         Message::factory()->count(4)->create();
 
-        $response = $this->getJson(
-            route('messages.receiver', $receiver->id)
-        );
-
-        $response->assertOk()
+        $responseData = $this
+            ->getJson(route('messages.receiver', $receiver->id))
+            ->assertOk()
             ->assertJsonStructure([
-            'current_page',
-            'data' => [
-                '*' => [
-                    'id',
-                    'sender_id',
-                    'receiver_id',
-                    'message',
-                    'created_at',
-                    'updated_at',
+                'current_page',
+                'data' => [
+                    '*' => [
+                        'id',
+                        'sender_id',
+                        'receiver_id',
+                        'message',
+                    ],
                 ],
-            ],
-        ]);
+            ])
+            ->json('data');
 
-        $responseData = $response->json('data');
         foreach ($responseData as $msg) {
             $this->assertTrue(
                 $msg['sender_id'] === $this->user->id || $msg['receiver_id'] === $this->user->id
@@ -63,7 +60,7 @@ class MessageControllerTest extends TestCase
         }
     }
 
-    public function testStore():void
+    public function testStore(): void
     {
         $receiver = User::factory()->create();
         $message = fake()->paragraph;

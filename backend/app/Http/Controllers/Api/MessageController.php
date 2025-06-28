@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\GetMessageRequest;
 use App\Http\Requests\Api\StoreMessageRequest;
+use App\Http\Requests\Api\UpdateMessageRequest;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class MessageController extends Controller
 {
-    public function messagesByReceiver(GetMessageRequest $request, User $receiver): JsonResponse
+    public function getByReceiver(User $receiver): JsonResponse
     {
         $authUserId = auth()->id();
         $receiverId = $receiver->id;
@@ -26,7 +26,7 @@ class MessageController extends Controller
                     ->where('receiver_id', $authUserId);
             })
             ->orderBy('created_at', 'desc')
-            ->paginate($request->validated()['per_page'] ?? 10);
+            ->paginate(10);
 
         return response()->json($messages);
     }
@@ -48,13 +48,13 @@ class MessageController extends Controller
         ]);
     }
 
-    public function update(StoreMessageRequest $request, Message $message): JsonResponse
+    public function update(UpdateMessageRequest $request, Message $message): JsonResponse
     {
         $message->update($request->validated());
 
         return response()->json([
             'message' => 'Message updated successfully',
-            'data' => $message->fresh(),
+            'data' => $message,
         ]);
     }
 

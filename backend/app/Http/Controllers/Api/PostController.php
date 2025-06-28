@@ -11,7 +11,7 @@ use Illuminate\Http\JsonResponse;
 
 class PostController extends Controller
 {
-    public function postsByUser(User $user): JsonResponse
+    public function getByUser(User $user): JsonResponse
     {
         $posts = $user->posts()->latest()->get();
 
@@ -43,7 +43,7 @@ class PostController extends Controller
 
         return response()->json([
             'message' => 'Post updated successfully',
-            'data' => $post->fresh(),
+            'data' => $post,
         ]);
     }
 

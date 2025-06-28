@@ -12,22 +12,17 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::apiResource('users', UserController::class)
-        ->except(['store', 'index']);
+    Route::apiResource('users', UserController::class)->except(['store', 'index']);
 
     Route::prefix('posts')->group(function () {
-            Route::get('/user/{user}', [PostController::class, 'postsByUser'])
-                ->name('posts.user');
-        });
+        Route::get('/get-by-user/{user}', [PostController::class, 'getByUser'])->name('posts.user');
+    });
 
-    Route::apiResource('posts', PostController::class)
-        ->except('index');
+    Route::apiResource('posts', PostController::class)->except('index');
 
     Route::prefix('messages')->group(function () {
-            Route::get('/receiver/{user}', [MessageController::class, 'messagesByReceiver'])
-                ->name('messages.receiver');
-        });
+        Route::get('/get-by-receiver/{user}', [MessageController::class, 'getByReceiver'])->name('messages.receiver');
+    });
 
-    Route::apiResource('messages', MessageController::class)
-        ->except('index');
+    Route::apiResource('messages', MessageController::class)->except('index');
 });
