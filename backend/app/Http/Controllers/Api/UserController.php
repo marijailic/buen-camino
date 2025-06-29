@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\StoreUserRequest;
 use App\Http\Requests\Api\UpdateUserRequest;
 use App\Http\Requests\Api\UserUpdateLocationRequest;
 use App\Models\User;
@@ -41,16 +40,6 @@ class UserController extends Controller
         return response()->json($closeUsers->values());
     }
 
-    public function store(StoreUserRequest $request): JsonResponse
-    {
-        $user = User::create($request->validated());
-
-        return response()->json([
-            'message' => 'User created successfully',
-            'data' => $user,
-        ], 201);
-    }
-
     public function show(User $user): JsonResponse
     {
         return response()->json([
@@ -58,8 +47,10 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(UpdateUserRequest $request, User $user): JsonResponse
+    public function update(UpdateUserRequest $request): JsonResponse
     {
+        $user = auth()->user();
+
         $user->update($request->validated());
 
         return response()->json([
