@@ -1,5 +1,5 @@
 export function haversine(lat1, lon1, lat2, lon2) {
-    const R = 6371.0; // Zemljin radijus u kilometrima
+    const R = 6371.0; // Zemljin radijus u km
 
     const toRadians = (deg) => deg * (Math.PI / 180);
 
@@ -14,7 +14,5 @@ export function haversine(lat1, lon1, lat2, lon2) {
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c; // udaljenost u km
+    return R * c;
 }
-
-// 45.1772416 13.9722752
