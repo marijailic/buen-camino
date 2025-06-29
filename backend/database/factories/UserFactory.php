@@ -30,6 +30,8 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'latitude' => 44.8666 + mt_rand() / mt_getrandmax() - 0.25,
+            'longitude' => 13.8496 + mt_rand() / mt_getrandmax() - 0.25,
             'remember_token' => Str::random(10),
         ];
     }

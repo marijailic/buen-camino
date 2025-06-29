@@ -26,7 +26,7 @@ class PostControllerTest extends TestCase
         Post::factory()->count(2)->create();
 
         $response = $this->getJson(
-            route('posts.user', $this->user->id)
+            route('posts.getByUser', $this->user->id)
         );
 
         $response->assertOk()

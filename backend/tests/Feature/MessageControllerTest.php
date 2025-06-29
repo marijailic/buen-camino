@@ -38,7 +38,7 @@ class MessageControllerTest extends TestCase
         Message::factory()->count(4)->create();
 
         $responseData = $this
-            ->getJson(route('messages.receiver', $receiver->id))
+            ->getJson(route('messages.getByReceiver', $receiver->id))
             ->assertOk()
             ->assertJsonStructure([
                 'current_page',

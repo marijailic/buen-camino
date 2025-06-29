@@ -6,11 +6,19 @@ use App\Models\Message;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        User::factory()->create([
+            "email" => "example@example.com",
+            "password" => Hash::make('password'),
+            "latitude" => 45.1772416,
+            "longitude" => 13.9722752,
+        ]);
+
         $users = User::factory(20)->create();
 
         $users->each(function ($user) {
