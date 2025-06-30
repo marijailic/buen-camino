@@ -1,6 +1,23 @@
 // src/components/Sidebar.js
 
+import { logout } from "../api/authApi";
+import { useAuth } from "../context/auth/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 const Sidebar = () => {
+    const { token, authLogout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        try {
+            await logout(token);
+            authLogout();
+            navigate("/login");
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
+    };
+
     return (
         <aside className="w-64 p-6 bg-white text-black h-full">
             <div className="mt-10">
@@ -19,9 +36,12 @@ const Sidebar = () => {
                     <a href="/conversations" className="inline hover:underline">
                         Conversations
                     </a>
-                    <a href="#" className="inline hover:underline">
+                    <button
+                        onClick={handleLogout}
+                        className="text-left inline hover:underline"
+                    >
                         Log Out
-                    </a>
+                    </button>
                 </nav>
             </div>
         </aside>
