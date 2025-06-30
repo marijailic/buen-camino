@@ -1,3 +1,5 @@
+// src/components/map/markers/CurrentUserMarker.js
+
 import { Marker, Popup } from "react-leaflet";
 import { redIcon } from "../../../leaflet/markerIcons";
 

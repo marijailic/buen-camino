@@ -11,13 +11,13 @@ const Sidebar = () => {
                 </div>
                 <nav className="flex flex-col space-y-2">
                     <a href="#" className="inline hover:underline">
-                        Moj profil
+                        My profile
                     </a>
                     <a href="#" className="inline hover:underline">
-                        Razgovori
+                        Conversations
                     </a>
                     <a href="#" className="inline hover:underline">
-                        Odjava
+                        Log Out
                     </a>
                 </nav>
             </div>

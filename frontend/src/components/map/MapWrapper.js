@@ -1,8 +1,10 @@
+// src/components/map/MapWrapper.js
+
 import { MapContainer, TileLayer } from "react-leaflet";
 import CurrentUserMarker from "./markers/CurrentUserMarker";
 import UserMarkers from "./markers/UserMarkers";
 
-const MapWrapper = ({ position, users, maxRange }) => (
+const MapWrapper = ({ position, users }) => (
     <MapContainer
         center={position}
         zoom={9}
@@ -13,7 +15,7 @@ const MapWrapper = ({ position, users, maxRange }) => (
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <CurrentUserMarker position={position} />
-        <UserMarkers users={users} position={position} maxRange={maxRange} />
+        <UserMarkers users={users} />
     </MapContainer>
 );
 

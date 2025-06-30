@@ -1,23 +1,17 @@
-import { Marker, Popup } from "react-leaflet";
-import { blueIcon, yellowIcon } from "../../../leaflet/markerIcons";
-import { haversine } from "../../../utils/distanceHelper";
+// src/components/map/markers/UserMarkers.js
 
-const UserMarkers = ({ users, position, maxRange }) => {
+import { Marker, Popup } from "react-leaflet";
+import { yellowIcon } from "../../../leaflet/markerIcons";
+
+const UserMarkers = ({ users }) => {
     return (
         <>
             {users.map((user) => {
-                const distance = haversine(
-                    user.latitude,
-                    user.longitude,
-                    position[0],
-                    position[1]
-                );
-
                 return (
                     <Marker
                         key={user.id}
                         position={[user.latitude, user.longitude]}
-                        icon={distance < maxRange ? yellowIcon : blueIcon}
+                        icon={yellowIcon}
                     >
                         <Popup>{user.first_name + " " + user.last_name}</Popup>
                     </Marker>
