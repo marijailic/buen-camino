@@ -21,3 +21,12 @@ export const updateLocation = (token, location) => {
         },
     });
 };
+
+export const getUser = (token, userId) => {
+    return axios.get(`${backendUrl}/api/users/${userId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+        },
+    });
+};

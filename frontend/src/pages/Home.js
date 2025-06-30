@@ -29,7 +29,9 @@ const Home = () => {
                 const longitude = pos.coords.longitude;
                 setPosition([latitude, longitude]);
 
-                updateLocation(token, { latitude, longitude });
+                updateLocation(token, { latitude, longitude }).finally(() => {
+                    fetchUsersData();
+                });
 
                 setInterval(() => {
                     updateLocation(token, { latitude, longitude });
@@ -37,10 +39,9 @@ const Home = () => {
             },
             (err) => {
                 console.error("Geolocation error:", err);
+                fetchUsersData();
             }
         );
-
-        fetchUsersData();
     }, [token]);
 
     return (

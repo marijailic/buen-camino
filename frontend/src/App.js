@@ -11,6 +11,7 @@ import Welcome from "./pages/Welcome";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
+import Conversations from "./pages/Conversations";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -53,6 +54,10 @@ const App = () => {
                         }
                     >
                         <Route path="/home" element={<Home />} />
+                        <Route
+                            path="/conversations"
+                            element={<Conversations />}
+                        />
                         {/* Add more protected routes here */}
                     </Route>
 
