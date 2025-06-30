@@ -15,16 +15,3 @@ export const register = async (data) => {
 export const login = async ({ email, password }) => {
     return await axios.post(`${backendUrl}/api/login`, { email, password });
 };
-
-export const logout = async (token) => {
-    return await axios.post(
-        `${backendUrl}/api/logout`,
-        {},
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/json",
-            },
-        }
-    );
-};
