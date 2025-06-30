@@ -8,6 +8,10 @@ export const getCsrfCookie = () => {
     return axios.get(`${backendUrl}/sanctum/csrf-cookie`);
 };
 
+export const register = async (data) => {
+    return await axios.post(`${backendUrl}/api/register`, data);
+};
+
 export const login = async ({ email, password }) => {
     return await axios.post(`${backendUrl}/api/login`, { email, password });
 };

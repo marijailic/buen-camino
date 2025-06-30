@@ -7,6 +7,8 @@ import ProtectedRoute from "./context/auth/ProtectedRoute";
 import PublicRoute from "./context/auth/PublicRoute";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 
+import Welcome from "./pages/Welcome";
+import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
@@ -17,6 +19,22 @@ const App = () => {
             <BrowserRouter>
                 <Routes>
                     {/* Public Route */}
+                    <Route
+                        path="/"
+                        element={
+                            <PublicRoute>
+                                <Welcome />
+                            </PublicRoute>
+                        }
+                    />
+                    <Route
+                        path="/register"
+                        element={
+                            <PublicRoute>
+                                <Register />
+                            </PublicRoute>
+                        }
+                    />
                     <Route
                         path="/login"
                         element={
