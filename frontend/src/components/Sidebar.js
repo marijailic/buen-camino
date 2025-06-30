@@ -26,10 +26,13 @@ const Sidebar = () => {
                     <div className="mb-10 text-2xl font-bold">BUEN CAMINO</div>
                 </div>
                 <nav className="flex flex-col space-y-2">
+                    <a href="/home" className="inline hover:underline">
+                        Home
+                    </a>
                     <a href="#" className="inline hover:underline">
                         My profile
                     </a>
-                    <a href="#" className="inline hover:underline">
+                    <a href="/conversations" className="inline hover:underline">
                         Conversations
                     </a>
                     <button

@@ -25,6 +25,7 @@ const Home = () => {
                 });
 
                 setInterval(() => {
+                    console.log("UPDATE");
                     updateLocation(token, { latitude, longitude });
                 }, 1000 * 60);
             },
