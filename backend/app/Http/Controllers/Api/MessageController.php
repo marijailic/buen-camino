@@ -7,6 +7,7 @@ use App\Http\Requests\Api\StoreMessageRequest;
 use App\Http\Requests\Api\UpdateMessageRequest;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\PusherService;
 use Illuminate\Http\JsonResponse;
 
 class MessageController extends Controller
@@ -58,6 +59,12 @@ class MessageController extends Controller
     {
         $message = Message::create($request->validated());
 
+        PusherService::newChatMessage(
+            $message->text,
+            $message->sender_id,
+            $message->receiver_id
+        );
+
         return response()->json([
             'message' => 'Message created successfully',
             'data' => $message,
@@ -75,6 +82,13 @@ class MessageController extends Controller
     {
         $message->update($request->validated());
 
+        PusherService::updateChatMessage(
+            $message->id,
+            $message->text,
+            $message->sender_id,
+            $message->receiver_id
+        );
+
         return response()->json([
             'message' => 'Message updated successfully',
             'data' => $message,
@@ -84,6 +98,12 @@ class MessageController extends Controller
     public function destroy(Message $message): JsonResponse
     {
         $message->delete();
+
+        PusherService::deleteChatMessage(
+            $message->id,
+            $message->sender_id,
+            $message->receiver_id
+        );
 
         return response()->json([
             'message' => 'Message deleted successfully',
