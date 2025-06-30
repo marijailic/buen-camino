@@ -14,6 +14,26 @@ const Home = () => {
     const { token } = useAuth();
 
     useEffect(() => {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const latitude = pos.coords.latitude;
+                const longitude = pos.coords.longitude;
+                setPosition([latitude, longitude]);
+
+                updateLocation(token, { latitude, longitude }).finally(() => {
+                    fetchUsersData();
+                });
+
+                setInterval(() => {
+                    updateLocation(token, { latitude, longitude });
+                }, 1000 * 60);
+            },
+            (err) => {
+                console.error("Geolocation error:", err);
+                fetchUsersData();
+            }
+        );
+
         const fetchUsersData = async () => {
             try {
                 const response = await getUsers(token);
@@ -22,25 +42,6 @@ const Home = () => {
                 console.error("Failed to fetch users:", err);
             }
         };
-
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const latitude = pos.coords.latitude;
-                const longitude = pos.coords.longitude;
-                setPosition([latitude, longitude]);
-
-                updateLocation(token, { latitude, longitude });
-
-                setInterval(() => {
-                    updateLocation(token, { latitude, longitude });
-                }, 1000 * 60);
-            },
-            (err) => {
-                console.error("Geolocation error:", err);
-            }
-        );
-
-        fetchUsersData();
     }, [token]);
 
     return (
