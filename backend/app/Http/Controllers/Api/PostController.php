@@ -7,6 +7,7 @@ use App\Http\Requests\Api\StorePostRequest;
 use App\Http\Requests\Api\UpdatePostRequest;
 use App\Models\Post;
 use App\Models\User;
+use App\Services\CloudinaryService;
 use Illuminate\Http\JsonResponse;
 
 class PostController extends Controller
@@ -24,6 +25,11 @@ class PostController extends Controller
     {
         $post = Post::create($request->validated());
 
+        $image = $request->file('image');
+        if ($image) {
+            CloudinaryService::storeImage($post->id, base64_encode($image));
+        }
+
         return response()->json([
             'message' => 'Post created successfully',
             'data' => $post,
@@ -32,8 +38,10 @@ class PostController extends Controller
 
     public function show(Post $post): JsonResponse
     {
+        $imageUrl = CloudinaryService::getImageUrl($post->id);
         return response()->json([
             'data' => $post,
+            'imageUrl' => $imageUrl,
         ]);
     }
 

@@ -16,6 +16,7 @@ class StorePostRequest extends FormRequest
         return [
             'text' => ['required', 'string'],
             'user_id' => ['required', 'uuid', 'exists:users,id'],
+            'image' => ['image', 'max:5120'], // 5 MB max size
         ];
     }
 }
