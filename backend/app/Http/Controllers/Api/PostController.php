@@ -38,7 +38,11 @@ class PostController extends Controller
 
     public function show(Post $post): JsonResponse
     {
-        $imageUrl = CloudinaryService::getImageUrl($post->id);
+        try {
+            $imageUrl = CloudinaryService::getImageUrl($post->id);
+        } catch (\Exception $e) {
+            $imageUrl = null;
+        }
         return response()->json([
             'data' => $post,
             'imageUrl' => $imageUrl,
