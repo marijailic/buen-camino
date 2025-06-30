@@ -60,6 +60,54 @@ class MessageControllerTest extends TestCase
         }
     }
 
+    public function testShouldReturnAllReceiverIdsExcludingAuthenticatedUser(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+        $userC = User::factory()->create();
+
+        Message::factory()->create([
+            'sender_id' => $this->user->id,
+            'receiver_id' => $userA->id,
+        ]);
+
+        Message::factory()->create([
+            'sender_id' => $this->user->id,
+            'receiver_id' => $userB->id,
+        ]);
+
+        Message::factory()->create([
+            'sender_id' => $userC->id,
+            'receiver_id' => $this->user->id,
+        ]);
+
+        Message::factory()->create([
+            'sender_id' => $this->user->id,
+            'receiver_id' => $userA->id,
+        ]);
+
+        $response = $this->getJson(
+            route('messages.getAllReceivers')
+        );
+
+        $response
+            ->assertOk()
+            ->assertJsonStructure([
+            'receiver_ids'
+        ]);
+
+        $receiverIds = $response->json('receiver_ids');
+
+        $expectedIds = [
+            $userA->id,
+            $userB->id,
+            $userC->id,
+        ];
+
+        $this->assertCount(3, $receiverIds);
+        $this->assertEqualsCanonicalizing($expectedIds, $receiverIds);
+    }
+
     public function testStore(): void
     {
         $receiver = User::factory()->create();

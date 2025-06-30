@@ -22,5 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/messages/get-by-receiver/{user}', [MessageController::class, 'getByReceiver'])
         ->name('messages.getByReceiver');
+    Route::get('/messages/get-all-receivers', [MessageController::class, 'getAllReceivers'])
+        ->name('messages.getAllReceivers');
     Route::apiResource('messages', MessageController::class)->except('index');
 });

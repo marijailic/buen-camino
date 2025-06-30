@@ -31,6 +31,29 @@ class MessageController extends Controller
         return response()->json($messages);
     }
 
+    public function getAllReceivers(): JsonResponse
+    {
+        $authUserId = auth()->id();
+
+        $messages = Message::with(['sender', 'receiver'])
+            ->where(function ($query) use ($authUserId) {
+                $query->where('sender_id', $authUserId);
+            })
+            ->orWhere(function ($query) use ($authUserId) {
+                $query->where('receiver_id', $authUserId);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get(['sender_id', 'receiver_id']);
+
+        $ids = $messages->pluck('sender_id')
+            ->merge($messages->pluck('receiver_id'))
+            ->unique()
+            ->reject(fn($id) => $id === $authUserId)
+            ->values();
+
+        return response()->json(['receiver_ids' => $ids]);
+    }
+
     public function store(StoreMessageRequest $request): JsonResponse
     {
         $message = Message::create($request->validated());
