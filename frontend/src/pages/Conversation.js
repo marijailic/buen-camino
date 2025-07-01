@@ -101,6 +101,11 @@ const Conversation = () => {
     };
 
     const newMessage = (data) => {
+      // Napraviti ovu funkciju do kraja
+      // Treba napraviti da radi isto sto i funkcija handleSend bez backanda (znaci samo seta poruku)**
+      // Treba napraviti funkcije za update i delete poruke **
+      // Treba bindati update i delete na pusher evente **
+      // Treba odkomentirati pusher subscription i bindove **
         console.log(data);
     };
 
