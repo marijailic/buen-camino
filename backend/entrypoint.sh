@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd ..
-
 echo "Installing Composer dependencies..."
 composer install
 
