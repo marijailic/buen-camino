@@ -117,11 +117,20 @@ const Conversation = () => {
 
     return (
         <div className="min-h-screen flex flex-col justify-between px-6 bg-gray-100 w-full">
-            {receiver && (
-                <div className="text-2xl font-bold mt-6 mb-1">
-                    {receiver.first_name} {receiver.last_name}
-                </div>
-            )}
+            <div>
+                {receiver && (
+                    <div className="text-2xl font-bold mt-6 mb-1">
+                        {receiver.first_name} {receiver.last_name}
+                    </div>
+                )}
+                {messages.length === 0 && (
+                    <div className="flex flex-col items-start justify-start">
+                        <div className="text-lg font-medium">
+                            No messages...
+                        </div>
+                    </div>
+                )}
+            </div>
             {/* Messages container */}
             <div className="flex flex-col flex-grow overflow-y-auto space-y-3 mb-4 pr-2 hide-scrollbar max-h-[70vh] ">
                 {messages.map((msg) => {
