@@ -2,6 +2,9 @@
 
 cd ..
 
+echo "Installing Composer dependencies..."
+composer install
+
 echo "Running Laravel migrations..."
 php artisan migrate --force
 
