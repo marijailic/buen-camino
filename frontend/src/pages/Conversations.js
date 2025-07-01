@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getAllReceivers } from "../api/messagesApi";
 import { getUser } from "../api/usersApi";
 import { useAuth } from "../context/auth/AuthContext";
+import { Link } from "react-router-dom";
 
 const Conversations = () => {
     const { token } = useAuth();
@@ -56,25 +57,37 @@ const Conversations = () => {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gray-100">
-            <div className="text-2xl font-bold mb-6">Conversations</div>
-            <div className="grid grid-cols-1 gap-4 w-full max-w-md">
-                {receivers.map((user) => (
-                    <div
-                        key={user.id}
-                        className="bg-white rounded shadow p-4 flex flex-col items-center"
-                    >
-                        <img
-                            src="/icon.png"
-                            alt="User"
-                            className="w-16 h-16 mb-2"
-                        />
-                        <div className="text-lg font-semibold">
-                            {user.first_name} {user.last_name}
-                        </div>
+        <div className="min-h-screen flex flex-col px-6 bg-gray-100">
+            <div className="text-2xl font-bold mt-6 mb-1">CONVERSATIONS</div>
+
+            {receivers.length === 0 ? (
+                <div className="flex flex-col items-start justify-start">
+                    <div className="text-lg font-medium">
+                        No conversations...
                     </div>
-                ))}
-            </div>
+                </div>
+            ) : (
+                <div className="mt-6 w-full">
+                    <div className="flex flex-col gap-2 max-h-[80vh] overflow-y-auto pr-2 hide-scrollbar">
+                        {receivers.map((user) => (
+                            <Link
+                                key={user.data.id}
+                                to={`/conversation/${user.data.id}`}
+                                className="bg-white rounded shadow p-4 flex items-center no-underline hover:bg-gray-50 w-full"
+                            >
+                                <img
+                                    src="/icon.png"
+                                    alt="User"
+                                    className="w-12 h-12 rounded-full mr-4"
+                                />
+                                <div className="text-lg font-semibold">
+                                    {user.data.first_name} {user.data.last_name}
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

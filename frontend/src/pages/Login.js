@@ -38,9 +38,14 @@ const Login = () => {
         try {
             await getCsrfCookie();
             const response = await login({ email, password });
-            const accessToken = response.data.access_token;
+            const data = response.data;
 
-            authLogin(accessToken);
+            authLogin(
+                data.access_token,
+                data.id,
+                data.first_name,
+                data.last_name
+            );
             navigate("/home");
         } catch (error) {
             console.error("Login error:", error);

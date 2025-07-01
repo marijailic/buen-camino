@@ -11,7 +11,11 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $users = User::factory(20)->create();
+        $user = User::factory()->create([
+            'email' => 'example@example.com',
+        ]);
+
+        $users = User::factory(50)->create();
 
         $users->each(function ($user) {
             Post::factory(rand(10, 15))->create([
@@ -19,10 +23,26 @@ class DatabaseSeeder extends Seeder
             ]);
         });
 
-        $conversationalists = $users->random(15);
+        $conversationPartners = $users->random(35);
 
-        $conversationalists->each(function ($sender) use ($conversationalists) {
-            $receivers = $conversationalists->where('id', '!=', $sender->id)->random(rand(2, 4));
+        foreach ($conversationPartners as $receiver) {
+            foreach (range(1, rand(2, 5)) as $_) {
+                Message::factory()->create([
+                    'sender_id' => $user->id,
+                    'receiver_id' => $receiver->id,
+                ]);
+
+                Message::factory()->create([
+                    'sender_id' => $receiver->id,
+                    'receiver_id' => $user->id,
+                ]);
+            }
+        }
+
+        $chatPeople = $users->random(15);
+
+        $chatPeople->each(function ($sender) use ($chatPeople) {
+            $receivers = $chatPeople->where('id', '!=', $sender->id)->random(rand(2, 4));
 
             foreach ($receivers as $receiver) {
                 foreach (range(1, rand(2, 5)) as $_) {

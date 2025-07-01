@@ -5,7 +5,7 @@ import { useAuth } from "../context/auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
-    const { token, authLogout } = useAuth();
+    const { token, authLogout, firstName, lastName } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -24,7 +24,10 @@ const Sidebar = () => {
                 <div className="mt-10 flex flex-col items-center">
                     <img src="/icon.png" className="w-24 h-auto mb-6" />
 
-                    <div className="mb-10 text-2xl font-bold">BUEN CAMINO</div>
+                    <div className="mb-1 text-2xl font-bold">BUEN CAMINO</div>
+                    <h2 className="mb-8 text-center">
+                        {firstName} {lastName}
+                    </h2>
                 </div>
                 <nav className="flex flex-col space-y-2">
                     <a href="/home" className="inline hover:underline">

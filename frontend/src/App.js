@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Conversations from "./pages/Conversations";
+import Conversation from "./pages/Conversation";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -57,6 +58,10 @@ const App = () => {
                         <Route
                             path="/conversations"
                             element={<Conversations />}
+                        />
+                        <Route
+                            path="/conversation/:userId"
+                            element={<Conversation />}
                         />
                         {/* Add more protected routes here */}
                     </Route>

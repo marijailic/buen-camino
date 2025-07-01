@@ -12,3 +12,29 @@ export const getAllReceivers = (token) => {
         },
     });
 };
+
+export const getByReciever = (token, userId) => {
+    return axios.get(`${backendUrl}/api/messages/get-by-receiver/${userId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+        },
+    });
+};
+
+export const sendMessage = (token, message, senderId, receiverId) => {
+    return axios.post(
+        `${backendUrl}/api/messages`,
+        {
+            text: message,
+            sender_id: senderId,
+            receiver_id: receiverId,
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            },
+        }
+    );
+};
