@@ -6,28 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreMessageRequest;
 use App\Http\Requests\Api\UpdateMessageRequest;
 use App\Models\Message;
-use App\Models\User;
 use App\Services\PusherService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 
 class MessageController extends Controller
 {
-    public function getByReceiver(User $receiver): JsonResponse
+    public function getByReceiver(string $userId): JsonResponse
     {
         $authUserId = auth()->id();
-        $receiverId = $receiver->id;
 
         $messages = Message::with(['sender', 'receiver'])
-            ->where(function ($query) use ($authUserId, $receiverId) {
-                $query->where('sender_id', $authUserId)
-                    ->where('receiver_id', $receiverId);
+            ->where(function (Builder $query) use ($authUserId, $userId) {
+                $query->where('sender_id', $authUserId)->where('receiver_id', $userId);
             })
-            ->orWhere(function ($query) use ($authUserId, $receiverId) {
-                $query->where('sender_id', $receiverId)
-                    ->where('receiver_id', $authUserId);
+            ->orWhere(function ($query) use ($authUserId, $userId) {
+                $query->where('sender_id', $userId)->where('receiver_id', $authUserId);
             })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->orderBy('created_at')
+            ->get();
 
         return response()->json($messages);
     }

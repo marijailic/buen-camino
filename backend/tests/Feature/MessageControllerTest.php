@@ -40,18 +40,16 @@ class MessageControllerTest extends TestCase
         $responseData = $this
             ->getJson(route('messages.getByReceiver', $receiver->id))
             ->assertOk()
+            ->assertJsonCount(8)
             ->assertJsonStructure([
-                'current_page',
-                'data' => [
-                    '*' => [
-                        'id',
-                        'sender_id',
-                        'receiver_id',
-                        'message',
-                    ],
+                '*' => [
+                    'id',
+                    'sender_id',
+                    'receiver_id',
+                    'text',
                 ],
             ])
-            ->json('data');
+            ->json();
 
         foreach ($responseData as $msg) {
             $this->assertTrue(

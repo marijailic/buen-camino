@@ -45,6 +45,10 @@ class PusherService
 
     private static function push(string $channel, string $event, array $data): void
     {
+        if (app()->environment('testing')) {
+            return;
+        }
+
         $appKey = config('services.pusher.app_key');
         $appSecret = config('services.pusher.app_secret');
         $appId = config('services.pusher.app_id');

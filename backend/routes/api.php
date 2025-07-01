@@ -19,8 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/posts/get-by-user/{user}', [PostController::class, 'getByUser'])->name('posts.getByUser');
     Route::apiResource('posts', PostController::class)->except('index');
 
-
-    Route::get('/messages/get-by-receiver/{user}', [MessageController::class, 'getByReceiver'])
+    Route::get('/messages/get-by-receiver/{user_id}', [MessageController::class, 'getByReceiver'])
         ->name('messages.getByReceiver');
     Route::get('/messages/get-all-receivers', [MessageController::class, 'getAllReceivers'])
         ->name('messages.getAllReceivers');
