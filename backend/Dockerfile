@@ -17,4 +17,8 @@ ENV LOG_CHANNEL stderr
 # Allow composer to run as root
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
+# Laravel migration/seed script
+COPY entrypoint.sh /etc/my_init.d/entrypoint.sh
+RUN chmod +x /etc/my_init.d/entrypoint.sh
+
 CMD ["/start.sh"]
