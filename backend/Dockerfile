@@ -3,8 +3,8 @@ FROM richarvey/nginx-php-fpm:3.1.6
 COPY . .
 
 # Laravel migration/seed script
-COPY entrypoint.sh /etc/my_init.d/entrypoint.sh
-RUN chmod +x /etc/my_init.d/entrypoint.sh
+COPY entrypoint.sh /var/www/html/scripts/entrypoint.sh
+RUN chmod +x /var/www/html/scripts/entrypoint.sh
 
 # Image config
 # ENV SKIP_COMPOSER 1
