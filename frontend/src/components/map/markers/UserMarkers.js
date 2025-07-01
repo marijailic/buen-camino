@@ -16,7 +16,7 @@ const UserMarkers = ({ users }) => {
                     >
                         <Popup>
                             <Link
-                                to={`/conversation/${user.id}`}
+                                to={`/profile/${user.id}`}
                                 style={{ color: "black" }}
                                 className="no-underline hover:underline"
                             >

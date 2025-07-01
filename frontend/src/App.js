@@ -15,6 +15,7 @@ import MyProfile from "./pages/MyProfile";
 import Conversations from "./pages/Conversations";
 import Conversation from "./pages/Conversation";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 
 const App = () => {
     return (
@@ -57,6 +58,7 @@ const App = () => {
                     >
                         <Route path="/home" element={<Home />} />
                         <Route path="/my-profile" element={<MyProfile />} />
+                        <Route path="/profile/:userId" element={<Profile />} />
                         <Route
                             path="/conversations"
                             element={<Conversations />}

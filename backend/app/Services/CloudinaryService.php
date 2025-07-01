@@ -17,6 +17,7 @@ class CloudinaryService
         Configuration::instance("cloudinary://{$cloudinaryKey}:{$cloudinarySecret}@{$cloudinaryCloudName}?secure=true");
 
         $upload = new UploadApi();
+
         return $upload->upload('data:image/png;base64,' . $base64Image, [
             'public_id' => $publicId,
             'use_filename' => true,

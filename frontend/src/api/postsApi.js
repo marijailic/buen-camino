@@ -5,9 +5,10 @@ import axios from "axios";
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 // Create a new post
-export const createPost = (token, { text, image }) => {
+export const createPost = (token, { text, image, userId }) => {
     const formData = new FormData();
     formData.append("text", text);
+    formData.append("user_id", userId);
     if (image) {
         formData.append("image", image);
     }

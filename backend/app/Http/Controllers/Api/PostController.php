@@ -16,6 +16,19 @@ class PostController extends Controller
     {
         $posts = $user->posts()->latest()->get();
 
+        foreach ($posts as $post) {
+            if (!$post->has_image) {
+                $post->image_url = null;
+                continue;
+            }
+
+            try {
+                $post->image_url = CloudinaryService::getImageUrl($post->id);
+            } catch (\Exception $e) {
+                $post->image_url = null;
+            }
+        }
+
         return response()->json([
             'data' => $posts,
         ]);
@@ -23,11 +36,15 @@ class PostController extends Controller
 
     public function store(StorePostRequest $request): JsonResponse
     {
-        $post = Post::create($request->validated());
+        $post = Post::create($request->except('image'));
 
         $image = $request->file('image');
         if ($image) {
-            CloudinaryService::storeImage($post->id, base64_encode($image));
+            $imageContents = file_get_contents($image->getRealPath());
+
+            $post->has_image = true;
+            $post->save();
+            CloudinaryService::storeImage($post->id, base64_encode($imageContents));
         }
 
         return response()->json([

@@ -19,6 +19,7 @@ class PostFactory extends Factory
             'id' => $this->faker->uuid(),
             'text' => $this->faker->paragraph(),
             'user_id' => User::factory(),
+            'has_image' => false,
         ];
     }
 }

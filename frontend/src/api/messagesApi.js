@@ -38,3 +38,27 @@ export const sendMessage = (token, message, senderId, receiverId) => {
         }
     );
 };
+
+export const updateMessage = (token, message, messageId) => {
+    return axios.put(
+        `${backendUrl}/api/messages/${messageId}`,
+        {
+            text: message,
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            },
+        }
+    );
+};
+
+export const deleteMessage = (token, messageId) => {
+    return axios.delete(`${backendUrl}/api/messages/${messageId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+        },
+    });
+}; 

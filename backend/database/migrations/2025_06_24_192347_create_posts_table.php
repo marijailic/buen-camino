@@ -16,6 +16,7 @@ return new class extends Migration
 
             $table->text('text');
             $table->foreignUuid('user_id')->constrained();
+            $table->boolean('has_image')->default(false);
 
             $table->timestamps();
         });

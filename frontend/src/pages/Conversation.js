@@ -1,7 +1,7 @@
 // src/pages/Conversation.js
 
 import { useEffect, useState } from "react";
-import { getByReciever, sendMessage } from "../api/messagesApi";
+import { getByReciever, sendMessage, updateMessage, deleteMessage } from "../api/messagesApi";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/auth/AuthContext";
 import Pusher from "pusher-js";
@@ -73,12 +73,16 @@ const Conversation = () => {
     };
 
     // Save edited message
-    const saveEdit = () => {
+    const saveEdit = async (messageId) => {
         setMessages((prev) =>
             prev.map((msg) =>
                 msg.id === editingId ? { ...msg, text: editingText } : msg
             )
         );
+
+        // send to backend
+        await updateMessage(token, editingText.trim(), messageId);
+
         setEditingId(null);
         setEditingText("");
     };
@@ -90,8 +94,10 @@ const Conversation = () => {
     };
 
     // Delete message
-    const deleteMsg = (id) => {
-        setMessages((prev) => prev.filter((msg) => msg.id !== id));
+    const deleteMsg = async (messageId) => {
+        setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+        // send to backend
+        await deleteMessage(token, messageId); // Assuming you have a deleteMessage function
     };
 
     const newMessage = (data) => {
@@ -101,19 +107,19 @@ const Conversation = () => {
     const users = [authUserId, userId].sort();
     let channelName = "chat." + users[0] + "." + users[1];
 
-    const pusher = new Pusher(process.env.REACT_APP_PUSHER_APP_KEY, {
-        cluster: process.env.REACT_APP_PUSHER_APP_CLUSTER,
-    })
-        .subscribe(channelName)
-        .bind("new-message", newMessage);
+    // const pusher = new Pusher(process.env.REACT_APP_PUSHER_APP_KEY, {
+    //     cluster: process.env.REACT_APP_PUSHER_APP_CLUSTER,
+    // })
+    //     .subscribe(channelName)
+    //     .bind("new-message", newMessage);
 
-    useEffect(() => {
-        return () => {
-            if (typeof pusher.data?.disconnect === "function") {
-                pusher.data.disconnect();
-            }
-        };
-    }, [pusher.data?.disconnect]);
+    // useEffect(() => {
+    //     return () => {
+    //         if (typeof pusher.data?.disconnect === "function") {
+    //             pusher.data.disconnect();
+    //         }
+    //     };
+    // }, [pusher.data?.disconnect]);
 
     return (
         <div className="min-h-screen flex flex-col justify-between px-6 bg-gray-100 w-full">
@@ -157,7 +163,7 @@ const Conversation = () => {
                                     <div className="flex space-x-2 mt-1 justify-end">
                                         <button
                                             className="underline text-sm text-gray-900 hover:text-gray-500"
-                                            onClick={saveEdit}
+                                            onClick={() => saveEdit(msg.id)}
                                         >
                                             Save
                                         </button>

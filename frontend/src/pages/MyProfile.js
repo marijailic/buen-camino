@@ -30,7 +30,7 @@ const MyProfile = () => {
                 const userRes = await getUser(token, authUserId);
                 const postRes = await getPostsByUser(token, authUserId);
                 setUser(userRes.data);
-                setPosts(postRes.data);
+                setPosts(postRes.data.data);
             } catch (err) {
                 console.error(err);
                 setError("Failed to load profile.");
@@ -44,11 +44,11 @@ const MyProfile = () => {
 
     const handlePostSubmit = async () => {
         try {
-            await createPost(token, { text: newPostText, image: imageFile });
+            await createPost(token, { text: newPostText, image: imageFile, userId: authUserId });
             setNewPostText("");
             setImageFile(null);
             const updatedPosts = await getPostsByUser(token, authUserId);
-            setPosts(updatedPosts.data);
+            setPosts(updatedPosts.data.data);
         } catch (err) {
             console.error(err);
         }
@@ -63,13 +63,13 @@ const MyProfile = () => {
         await updatePost(token, id, { text: editingText });
         setEditingId(null);
         const updatedPosts = await getPostsByUser(token, authUserId);
-        setPosts(updatedPosts.data);
+        setPosts(updatedPosts.data.data);
     };
 
     const handleDelete = async (id) => {
         await deletePost(token, id);
         const updatedPosts = await getPostsByUser(token, authUserId);
-        setPosts(updatedPosts.data);
+        setPosts(updatedPosts.data.data);
     };
 
     if (loading) {
