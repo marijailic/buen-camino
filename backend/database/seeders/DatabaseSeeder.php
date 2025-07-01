@@ -15,6 +15,10 @@ class DatabaseSeeder extends Seeder
             'email' => 'example@example.com',
         ]);
 
+        Post::factory()->count(15)->create([
+            'user_id' => $user->id,
+        ]);
+
         $users = User::factory(50)->create();
 
         $users->each(function ($user) {

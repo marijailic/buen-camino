@@ -11,6 +11,7 @@ import Welcome from "./pages/Welcome";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
+import MyProfile from "./pages/MyProfile";
 import Conversations from "./pages/Conversations";
 import Conversation from "./pages/Conversation";
 import NotFound from "./pages/NotFound";
@@ -55,6 +56,7 @@ const App = () => {
                         }
                     >
                         <Route path="/home" element={<Home />} />
+                        <Route path="/my-profile" element={<MyProfile />} />
                         <Route
                             path="/conversations"
                             element={<Conversations />}

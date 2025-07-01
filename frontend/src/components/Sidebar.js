@@ -33,7 +33,7 @@ const Sidebar = () => {
                     <a href="/home" className="inline hover:underline">
                         Home
                     </a>
-                    <a href="#" className="inline hover:underline">
+                    <a href="/my-profile" className="inline hover:underline">
                         My profile
                     </a>
                     <a href="/conversations" className="inline hover:underline">
