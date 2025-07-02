@@ -1,12 +1,12 @@
 FROM richarvey/nginx-php-fpm:3.1.6
 
-COPY . .
+# Copy application files into the correct folder
+COPY . /var/www/html
 
 COPY entrypoint.sh /var/www/html/scripts/entrypoint.sh
 RUN chmod +x /var/www/html/scripts/entrypoint.sh
 
 # Image config
-ENV SKIP_COMPOSER 1
 ENV WEBROOT /var/www/html/public
 ENV PHP_ERRORS_STDERR 1
 ENV RUN_SCRIPTS 1
@@ -20,5 +20,5 @@ ENV LOG_CHANNEL stderr
 # Allow composer to run as root
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# ENTRYPOINT ["/var/www/html/scripts/entrypoint.sh"]
+# Default start
 CMD ["/start.sh"]
