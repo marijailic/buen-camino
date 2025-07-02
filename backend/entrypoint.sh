@@ -8,7 +8,7 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-php artisan route:list
-
 php artisan migrate --force
+
+# Avoid crashing if faker fails
 php artisan db:seed --force || true
