@@ -2,6 +2,7 @@
 
 echo "Installing Composer dependencies..."
 composer install --no-dev --optimize-autoloader
+composer require fakerphp/faker
 
 # Clear all caches
 php artisan optimize:clear
