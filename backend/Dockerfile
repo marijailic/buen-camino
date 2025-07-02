@@ -22,3 +22,6 @@ RUN composer install --no-dev --optimize-autoloader && \
     php artisan view:cache && \
     php artisan migrate --force || true && \
     php artisan db:seed --force || true
+
+RUN cat /etc/nginx/sites-enabled/default
+RUN ls -lah /var/www/html/public
