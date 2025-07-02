@@ -1,14 +1,21 @@
 #!/bin/bash
 
 echo "Installing Composer dependencies..."
-composer install
+composer install --no-dev --optimize-autoloader
 
-php artisan route:clear
-php artisan config:clear
+# Clear all caches
 php artisan optimize:clear
 
+# Rebuild all caches
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# Show routes (optional)
+php artisan route:list
+
 echo "Running Laravel migrations..."
-php artisan migrate:fresh --force
+php artisan migrate --force
 
 echo "Running Laravel seeders..."
 php artisan db:seed --force
