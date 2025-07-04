@@ -14,11 +14,7 @@ ENV APP_DEBUG false
 ENV LOG_CHANNEL stderr
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-RUN composer install --no-dev --optimize-autoloader && \
-    php artisan optimize:clear && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+RUN composer install --no-dev --optimize-autoloader
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
