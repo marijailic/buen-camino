@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { getUser } from "../api/usersApi";
-import {
-    getPostsByUser
-} from "../api/postsApi";
+import { getPostsByUser } from "../api/postsApi";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/auth/AuthContext";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
     const { userId } = useParams();
@@ -22,7 +21,8 @@ const Profile = () => {
                 setLoading(true);
                 const userRes = await getUser(token, userId);
                 const postRes = await getPostsByUser(token, userId);
-                setUser(userRes.data);
+                // check actual structure of userRes
+                setUser(userRes.data.data || userRes.data);
                 setPosts(postRes.data.data);
             } catch (err) {
                 console.error(err);
@@ -53,17 +53,31 @@ const Profile = () => {
 
     return (
         <div className="min-h-screen flex flex-col px-6 bg-gray-100">
-            <div className="text-2xl font-bold mt-6 mb-4">
-                {user.first_name} {user.last_name}
-            </div>
+            {user && (
+                <div className="mt-6 mb-1 flex items-center justify-between text-2xl font-bold">
+                    <div>
+                        {user.first_name} {user.last_name}
+                    </div>
+                    <Link
+                        to={`/conversation/${user.id}`}
+                        className="inline-block bg-black text-white px-4 py-2 rounded text-base font-normal mr-2"
+                    >
+                        Start conversation
+                    </Link>
+                </div>
+            )}
 
             {/* Posts List */}
-            <div className="flex flex-col gap-2 max-w-xl w-full max-h-[80vh] overflow-y-auto pr-2 hide-scrollbar">
-                {posts.map((post) => (
-                    <div
-                        key={post.id}
-                        className="bg-white rounded shadow p-4 flex flex-col"
-                    >
+            <div className="mt-6 w-full">
+                <div
+                    className="flex flex-col gap-2 overflow-y-auto pr-2 hide-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 128px)" }}
+                >
+                    {posts.map((post) => (
+                        <div
+                            key={post.id}
+                            className="bg-white rounded shadow p-4 flex flex-col"
+                        >
                             <>
                                 <div className="text-base whitespace-pre-wrap">
                                     {post.text}
@@ -76,9 +90,9 @@ const Profile = () => {
                                     />
                                 )}
                             </>
-                        
-                    </div>
-                ))}
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

@@ -57,6 +57,7 @@ class MessageController extends Controller
         $message = Message::create($request->validated());
 
         PusherService::newChatMessage(
+            $message->id,
             $message->text,
             $message->sender_id,
             $message->receiver_id

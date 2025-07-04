@@ -1,7 +1,10 @@
-// src/pages/Conversation.js
-
-import { useEffect, useState } from "react";
-import { getByReciever, sendMessage, updateMessage, deleteMessage } from "../api/messagesApi";
+import { useEffect, useRef, useState } from "react";
+import {
+    getByReciever,
+    sendMessage,
+    updateMessage,
+    deleteMessage,
+} from "../api/messagesApi";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/auth/AuthContext";
 import Pusher from "pusher-js";
@@ -20,23 +23,22 @@ const Conversation = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const bottomRef = useRef(null); // 👈 For auto-scroll
+
+    const fetchMessages = async () => {
+        try {
+            setError(null);
+            const { data } = await getByReciever(token, userId);
+            setMessages(data);
+        } catch (err) {
+            console.error(err);
+            setError("Failed to load conversations.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchMessages = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const { data } = await getByReciever(token, userId);
-
-                setMessages(data);
-            } catch (err) {
-                console.error(err);
-                setError("Failed to load conversations.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchMessages();
     }, []);
 
@@ -52,79 +54,84 @@ const Conversation = () => {
         fetchReceiver();
     }, [token, userId]);
 
-    // Send new message (sender is "me")
+    // Scroll to bottom whenever messages update
+    useEffect(() => {
+        if (bottomRef.current) {
+            bottomRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [messages]);
+
     const handleSend = async () => {
         if (!input.trim()) return;
 
-        // send to backend
         await sendMessage(token, input.trim(), userId, authUserId);
-
-        setMessages((prev) => [
-            ...prev,
-            { id: Date.now(), sender: "me", text: input.trim() },
-        ]);
         setInput("");
+        await fetchMessages(); // Refresh after send
     };
 
-    // Start editing a message (only for sender "me")
     const startEdit = (id, currentText) => {
         setEditingId(id);
         setEditingText(currentText);
     };
 
-    // Save edited message
     const saveEdit = async (messageId) => {
-        setMessages((prev) =>
-            prev.map((msg) =>
-                msg.id === editingId ? { ...msg, text: editingText } : msg
-            )
-        );
-
-        // send to backend
         await updateMessage(token, editingText.trim(), messageId);
-
         setEditingId(null);
         setEditingText("");
+        // await fetchMessages(); // Refresh after edit
     };
 
-    // Cancel editing
     const cancelEdit = () => {
         setEditingId(null);
         setEditingText("");
     };
 
-    // Delete message
     const deleteMsg = async (messageId) => {
-        setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-        // send to backend
-        await deleteMessage(token, messageId); // Assuming you have a deleteMessage function
+        await deleteMessage(token, messageId);
+        // await fetchMessages(); // Refresh after delete
     };
 
+    // Pusher real-time handlers
     const newMessage = (data) => {
-      // Napraviti ovu funkciju do kraja
-      // Treba napraviti da radi isto sto i funkcija handleSend bez backanda (znaci samo seta poruku)**
-      // Treba napraviti funkcije za update i delete poruke **
-      // Treba bindati update i delete na pusher evente **
-      // Treba odkomentirati pusher subscription i bindove **
         console.log(data);
+        setMessages((prev) => [...prev, data]);
     };
 
-    const users = [authUserId, userId].sort();
-    let channelName = "chat." + users[0] + "." + users[1];
+    const updateMessageHandler = (data) => {
+        setMessages((prev) => {
+            const updated = prev.map((msg) =>
+                msg.id === data.id ? { ...msg, text: data.text } : msg
+            );
+            console.log("updated messages", updated);
+            return updated;
+        });
+    };
 
-    // const pusher = new Pusher(process.env.REACT_APP_PUSHER_APP_KEY, {
-    //     cluster: process.env.REACT_APP_PUSHER_APP_CLUSTER,
-    // })
-    //     .subscribe(channelName)
-    //     .bind("new-message", newMessage);
+    const deleteMessageHandler = (data) => {
+        setMessages((prev) => prev.filter((msg) => msg.id !== data.id));
+    };
 
-    // useEffect(() => {
-    //     return () => {
-    //         if (typeof pusher.data?.disconnect === "function") {
-    //             pusher.data.disconnect();
-    //         }
-    //     };
-    // }, [pusher.data?.disconnect]);
+    // Pusher setup
+    useEffect(() => {
+        const users = [authUserId, userId].sort();
+        const channelName = "chat." + users[0] + "." + users[1];
+
+        const pusher = new Pusher(process.env.REACT_APP_PUSHER_APP_KEY, {
+            cluster: process.env.REACT_APP_PUSHER_APP_CLUSTER,
+        });
+
+        const channel = pusher.subscribe(channelName);
+
+        channel.bind("new-message", newMessage);
+        channel.bind("update-message", updateMessageHandler);
+        channel.bind("delete-message", deleteMessageHandler);
+
+        return () => {
+            channel.unbind_all();
+            channel.unsubscribe();
+            pusher.disconnect();
+        };
+    }, [authUserId, userId]);
 
     return (
         <div className="min-h-screen flex flex-col justify-between px-6 bg-gray-100 w-full">
@@ -142,9 +149,14 @@ const Conversation = () => {
                     </div>
                 )}
             </div>
+
             {/* Messages container */}
-            <div className="flex flex-col flex-grow overflow-y-auto space-y-3 mb-4 pr-2 hide-scrollbar max-h-[70vh] ">
+            <div className="flex flex-col flex-grow overflow-y-auto space-y-3 mb-4 pr-2 hide-scrollbar max-h-[70vh]">
                 {messages.map((msg) => {
+                    console.log("Rendering message", msg);
+
+                    console.log("Rendering message", msg.id, msg.text);
+
                     const isSender = msg.sender_id !== authUserId;
                     return (
                         <div
@@ -158,23 +170,24 @@ const Conversation = () => {
                             {editingId === msg.id && isSender ? (
                                 <>
                                     <textarea
-                                        className="w-full p-1 rounded border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                                        rows={2}
+                                        placeholder="Edit your message..."
                                         value={editingText}
                                         onChange={(e) =>
                                             setEditingText(e.target.value)
                                         }
+                                        className="w-[500px] text-base px-2 py-1 bg-white text-gray-900 focus:outline-none resize-none overflow-hidden"
+                                        rows={3}
                                     />
-                                    <div className="flex space-x-2 mt-1 justify-end">
+                                    <div className="flex items-center justify-end space-x-2 mt-2">
                                         <button
-                                            className="underline text-sm text-gray-900 hover:text-gray-500"
                                             onClick={() => saveEdit(msg.id)}
+                                            className="text-sm underline text-gray-900 hover:text-gray-500"
                                         >
                                             Save
                                         </button>
                                         <button
-                                            className="underline text-sm text-gray-900 hover:text-gray-500"
                                             onClick={cancelEdit}
+                                            className="text-sm underline text-gray-900 hover:text-gray-500"
                                         >
                                             Cancel
                                         </button>
@@ -206,6 +219,7 @@ const Conversation = () => {
                         </div>
                     );
                 })}
+                <div ref={bottomRef} /> {/* 👈 Scroll anchor */}
             </div>
 
             {/* Input area */}

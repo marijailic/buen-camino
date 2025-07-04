@@ -44,7 +44,11 @@ const MyProfile = () => {
 
     const handlePostSubmit = async () => {
         try {
-            await createPost(token, { text: newPostText, image: imageFile, userId: authUserId });
+            await createPost(token, {
+                text: newPostText,
+                image: imageFile,
+                userId: authUserId,
+            });
             setNewPostText("");
             setImageFile(null);
             const updatedPosts = await getPostsByUser(token, authUserId);
@@ -90,12 +94,12 @@ const MyProfile = () => {
 
     return (
         <div className="min-h-screen flex flex-col px-6 bg-gray-100">
-            <div className="text-2xl font-bold mt-6 mb-4">
-                {user.first_name} {user.last_name}
+            <div className="mt-6 mb-1 flex items-center justify-between text-2xl font-bold">
+                <div>My Profile</div>
             </div>
 
             {/* New Post Input */}
-            <div className="bg-white p-4 rounded shadow max-w-xl w-full mb-6">
+            <div className="bg-white p-4 rounded shadow w-full mt-6 mb-6">
                 <textarea
                     placeholder="What's on your mind?"
                     value={newPostText}
@@ -104,12 +108,15 @@ const MyProfile = () => {
                     rows={3}
                 />
                 <div className="flex items-center justify-between">
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setImageFile(e.target.files[0])}
-                        className="text-sm"
-                    />
+                    <label className="bg-black text-white py-2 px-4 rounded cursor-pointer">
+                        Upload an image
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setImageFile(e.target.files[0])}
+                            className="hidden"
+                        />
+                    </label>
                     <button
                         onClick={handlePostSubmit}
                         className="bg-black text-white py-2 px-4 rounded"
@@ -120,7 +127,10 @@ const MyProfile = () => {
             </div>
 
             {/* Posts List */}
-            <div className="flex flex-col gap-2 max-w-xl w-full max-h-[80vh] overflow-y-auto pr-2 hide-scrollbar">
+            <div
+                className="flex flex-col gap-2 overflow-y-auto pr-2 hide-scrollbar"
+                style={{ maxHeight: "calc(100vh - 320px)" }}
+            >
                 {posts.map((post) => (
                     <div
                         key={post.id}

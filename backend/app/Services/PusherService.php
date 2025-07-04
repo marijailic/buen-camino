@@ -6,13 +6,14 @@ use Pusher\Pusher;
 
 class PusherService
 {
-    public static function newChatMessage(string $message, string $userId1, string $userId2): void
+    public static function newChatMessage(string $id, string $message, string $userId1, string $userId2): void
     {
         $users = [$userId1, $userId2];
         sort($users); // Ensure consistent channel naming
 
         self::push("chat.$users[0].$users[1]", 'new-message', [
-            'message' => $message,
+            'id' => $id,
+            'text' => $message,
             'sender_id' => $userId1,
             'receiver_id' => $userId2,
         ]);
@@ -24,8 +25,8 @@ class PusherService
         sort($users); // Ensure consistent channel naming
 
         self::push("chat.$users[0].$users[1]", 'update-message', [
-            'message_id' => $messageId,
-            'message' => $message,
+            'id' => $messageId,
+            'text' => $message,
             'sender_id' => $userId1,
             'receiver_id' => $userId2,
         ]);
@@ -37,7 +38,7 @@ class PusherService
         sort($users); // Ensure consistent channel naming
 
         self::push("chat.$users[0].$users[1]", 'delete-message', [
-            'message_id' => $messageId,
+            'id' => $messageId,
             'sender_id' => $userId1,
             'receiver_id' => $userId2,
         ]);

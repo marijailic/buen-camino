@@ -68,7 +68,10 @@ const Conversations = () => {
                 </div>
             ) : (
                 <div className="mt-6 w-full">
-                    <div className="flex flex-col gap-2 max-h-[80vh] overflow-y-auto pr-2 hide-scrollbar">
+                    <div
+                        className="flex flex-col gap-2 overflow-y-auto pr-2 hide-scrollbar"
+                        style={{ maxHeight: "calc(100vh - 128px)" }}
+                    >
                         {receivers.map((user) => (
                             <Link
                                 key={user.data.id}
