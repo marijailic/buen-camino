@@ -4,7 +4,6 @@ COPY . /var/www/html
 
 RUN chown -R www-data:www-data /var/www/html
 
-# Provide our own nginx.conf to control webroot
 COPY nginx.conf /etc/nginx/nginx.conf
 
 ENV PHP_ERRORS_STDERR 1
@@ -19,6 +18,9 @@ RUN composer install --no-dev --optimize-autoloader && \
     php artisan optimize:clear && \
     php artisan config:cache && \
     php artisan route:cache && \
-    php artisan view:cache && \
-    php artisan migrate --force && \
-    php artisan db:seed --force
+    php artisan view:cache
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
