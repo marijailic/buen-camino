@@ -6,61 +6,24 @@ use App\Models\Message;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $user = User::factory()->create([
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        DB::table('messages')->truncate();
+        DB::table('posts')->truncate();
+        DB::table('users')->truncate();
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        User::factory()->create([
             'email' => 'example@example.com',
+            'latitude' => 45.0950,    // Labin lat
+            'longitude' => 14.1190,   // Labin lon
         ]);
-
-        Post::factory()->count(15)->create([
-            'user_id' => $user->id,
-        ]);
-
-        $users = User::factory(50)->create();
-
-        $users->each(function ($user) {
-            Post::factory(rand(10, 15))->create([
-                'user_id' => $user->id,
-            ]);
-        });
-
-        $conversationPartners = $users->random(35);
-
-        foreach ($conversationPartners as $receiver) {
-            foreach (range(1, rand(2, 5)) as $_) {
-                Message::factory()->create([
-                    'sender_id' => $user->id,
-                    'receiver_id' => $receiver->id,
-                ]);
-
-                Message::factory()->create([
-                    'sender_id' => $receiver->id,
-                    'receiver_id' => $user->id,
-                ]);
-            }
-        }
-
-        $chatPeople = $users->random(15);
-
-        $chatPeople->each(function ($sender) use ($chatPeople) {
-            $receivers = $chatPeople->where('id', '!=', $sender->id)->random(rand(2, 4));
-
-            foreach ($receivers as $receiver) {
-                foreach (range(1, rand(2, 5)) as $_) {
-                    Message::factory()->create([
-                        'sender_id' => $sender->id,
-                        'receiver_id' => $receiver->id,
-                    ]);
-
-                    Message::factory()->create([
-                        'sender_id' => $receiver->id,
-                        'receiver_id' => $sender->id,
-                    ]);
-                }
-            }
-        });
     }
 }
