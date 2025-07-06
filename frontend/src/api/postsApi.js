@@ -1,10 +1,17 @@
 // src/api/postsApi.js
 
 import axios from "axios";
+import { getAuthHeaders } from "./apiUtils";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
-// Create a new post
+export const getPostsByUser = (token, userId) => {
+    return axios.get(
+        `${backendUrl}/api/posts/get-by-user/${userId}`,
+        getAuthHeaders(token)
+    );
+};
+
 export const createPost = (token, { text, image, userId }) => {
     const formData = new FormData();
     formData.append("text", text);
@@ -22,46 +29,24 @@ export const createPost = (token, { text, image, userId }) => {
     });
 };
 
-// Get posts by user ID
-export const getPostsByUser = (token, userId) => {
-    return axios.get(`${backendUrl}/api/posts/get-by-user/${userId}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-        },
-    });
-};
-
-// Show a specific post
 export const getPost = (token, postId) => {
-    return axios.get(`${backendUrl}/api/posts/${postId}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-        },
-    });
+    return axios.get(
+        `${backendUrl}/api/posts/${postId}`,
+        getAuthHeaders(token)
+    );
 };
 
-// Update a post
 export const updatePost = (token, postId, { text }) => {
     return axios.put(
         `${backendUrl}/api/posts/${postId}`,
         { text },
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/json",
-            },
-        }
+        getAuthHeaders(token)
     );
 };
 
-// Delete a post
 export const deletePost = (token, postId) => {
-    return axios.delete(`${backendUrl}/api/posts/${postId}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-        },
-    });
+    return axios.delete(
+        `${backendUrl}/api/posts/${postId}`,
+        getAuthHeaders(token)
+    );
 };

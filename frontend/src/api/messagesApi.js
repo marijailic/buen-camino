@@ -1,25 +1,22 @@
 // src/api/messagesApi.js
 
 import axios from "axios";
+import { getAuthHeaders } from "./apiUtils";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
-export const getAllReceivers = (token) => {
-    return axios.get(`${backendUrl}/api/messages/get-all-receivers`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-        },
-    });
+export const getByReciever = (token, userId) => {
+    return axios.get(
+        `${backendUrl}/api/messages/get-by-receiver/${userId}`,
+        getAuthHeaders(token)
+    );
 };
 
-export const getByReciever = (token, userId) => {
-    return axios.get(`${backendUrl}/api/messages/get-by-receiver/${userId}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-        },
-    });
+export const getAllReceivers = (token) => {
+    return axios.get(
+        `${backendUrl}/api/messages/get-all-receivers`,
+        getAuthHeaders(token)
+    );
 };
 
 export const sendMessage = (token, message, senderId, receiverId) => {
@@ -30,35 +27,23 @@ export const sendMessage = (token, message, senderId, receiverId) => {
             sender_id: senderId,
             receiver_id: receiverId,
         },
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/json",
-            },
-        }
+        getAuthHeaders(token)
     );
 };
 
-export const updateMessage = (token, message, messageId) => {
+export const editMessage = (token, message, messageId) => {
     return axios.put(
         `${backendUrl}/api/messages/${messageId}`,
         {
             text: message,
         },
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/json",
-            },
-        }
+        getAuthHeaders(token)
     );
 };
 
 export const deleteMessage = (token, messageId) => {
-    return axios.delete(`${backendUrl}/api/messages/${messageId}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-        },
-    });
-}; 
+    return axios.delete(
+        `${backendUrl}/api/messages/${messageId}`,
+        getAuthHeaders(token)
+    );
+};

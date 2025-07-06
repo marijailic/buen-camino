@@ -1,3 +1,5 @@
+// src/leaflet/markerIcons.js
+
 import L from "leaflet";
 
 delete L.Icon.Default.prototype._getIconUrl;

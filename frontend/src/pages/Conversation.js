@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
     getByReciever,
     sendMessage,
-    updateMessage,
+    editMessage,
     deleteMessage,
 } from "../api/messagesApi";
 import { useParams } from "react-router-dom";
@@ -20,8 +20,8 @@ const Conversation = () => {
     const [editingId, setEditingId] = useState(null);
     const [editingText, setEditingText] = useState("");
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [setLoading] = useState(true);
+    const [setError] = useState(null);
 
     const bottomRef = useRef(null); // 👈 For auto-scroll
 
@@ -38,7 +38,7 @@ const Conversation = () => {
         }
     };
 
-    useEffect(() => {
+    useEffect((fetchMessages) => {
         fetchMessages();
     }, []);
 
@@ -75,7 +75,7 @@ const Conversation = () => {
     };
 
     const saveEdit = async (messageId) => {
-        await updateMessage(token, editingText.trim(), messageId);
+        await editMessage(token, editingText.trim(), messageId);
         setEditingId(null);
         setEditingText("");
         // await fetchMessages(); // Refresh after edit

@@ -3,26 +3,26 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/auth/AuthContext";
 
-import ProtectedRoute from "./context/auth/ProtectedRoute";
 import PublicRoute from "./context/auth/PublicRoute";
+import ProtectedRoute from "./context/auth/ProtectedRoute";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 
 import Welcome from "./pages/Welcome";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
+import Profile from "./pages/Profile";
 import MyProfile from "./pages/MyProfile";
 import Conversations from "./pages/Conversations";
 import Conversation from "./pages/Conversation";
 import NotFound from "./pages/NotFound";
-import Profile from "./pages/Profile";
 
 const App = () => {
     return (
         <AuthProvider>
             <BrowserRouter>
                 <Routes>
-                    {/* Public Route */}
+                    {/* Public Routes */}
                     <Route
                         path="/"
                         element={
@@ -57,8 +57,8 @@ const App = () => {
                         }
                     >
                         <Route path="/home" element={<Home />} />
-                        <Route path="/my-profile" element={<MyProfile />} />
                         <Route path="/profile/:userId" element={<Profile />} />
+                        <Route path="/my-profile" element={<MyProfile />} />
                         <Route
                             path="/conversations"
                             element={<Conversations />}
@@ -67,10 +67,8 @@ const App = () => {
                             path="/conversation/:userId"
                             element={<Conversation />}
                         />
-                        {/* Add more protected routes here */}
                     </Route>
 
-                    {/* 404 Fallback */}
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </BrowserRouter>
