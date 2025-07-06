@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCsrfCookie, login } from "../api/authApi";
-import { useAuth } from "../context/auth/AuthContext";
+import { useAuth } from "../context/AuthContext";
+import { validateLogin } from "../utils/validation";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -15,18 +16,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const validationErrors = {};
-        if (!email) {
-            validationErrors.email = "Email is required.";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            validationErrors.email = "Email format is invalid.";
-        }
-        if (!password) {
-            validationErrors.password = "Password is required.";
-        } else if (password.length < 8) {
-            validationErrors.password =
-                "Password must be at least 8 characters.";
-        }
+        const validationErrors = validateLogin({ email, password });
 
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);

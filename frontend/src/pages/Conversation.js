@@ -1,3 +1,5 @@
+// src/pages/Conversation.js
+
 import { useEffect, useRef, useState } from "react";
 import {
     getByReciever,
@@ -6,24 +8,23 @@ import {
     deleteMessage,
 } from "../api/messagesApi";
 import { useParams } from "react-router-dom";
-import { useAuth } from "../context/auth/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import Pusher from "pusher-js";
 import { getUser } from "../api/usersApi";
 
 const Conversation = () => {
     const { userId } = useParams();
     const { token, authUserId } = useAuth();
+
     const [messages, setMessages] = useState([]);
     const [receiver, setReceiver] = useState(null);
-
     const [input, setInput] = useState("");
     const [editingId, setEditingId] = useState(null);
     const [editingText, setEditingText] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const [setLoading] = useState(true);
-    const [setError] = useState(null);
-
-    const bottomRef = useRef(null); // 👈 For auto-scroll
+    const bottomRef = useRef(null);
 
     const fetchMessages = async () => {
         try {
@@ -31,30 +32,28 @@ const Conversation = () => {
             const { data } = await getByReciever(token, userId);
             setMessages(data);
         } catch (err) {
-            console.error(err);
             setError("Failed to load conversations.");
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect((fetchMessages) => {
+    useEffect(() => {
         fetchMessages();
     }, []);
 
     useEffect(() => {
         const fetchReceiver = async () => {
             try {
-                const receiver = await getUser(token, userId);
-                setReceiver(receiver.data.data);
-            } catch (err) {
-                console.error("Failed to fetch recipient", err);
+                const receiverRes = await getUser(token, userId);
+                setReceiver(receiverRes.data.data);
+            } catch {
+                console.error("Failed to fetch recipient");
             }
         };
         fetchReceiver();
     }, [token, userId]);
 
-    // Scroll to bottom whenever messages update
     useEffect(() => {
         if (bottomRef.current) {
             bottomRef.current.scrollIntoView({ behavior: "smooth" });
@@ -63,10 +62,9 @@ const Conversation = () => {
 
     const handleSend = async () => {
         if (!input.trim()) return;
-
         await sendMessage(token, input.trim(), userId, authUserId);
         setInput("");
-        await fetchMessages(); // Refresh after send
+        await fetchMessages();
     };
 
     const startEdit = (id, currentText) => {
@@ -78,7 +76,6 @@ const Conversation = () => {
         await editMessage(token, editingText.trim(), messageId);
         setEditingId(null);
         setEditingText("");
-        // await fetchMessages(); // Refresh after edit
     };
 
     const cancelEdit = () => {
@@ -88,40 +85,33 @@ const Conversation = () => {
 
     const deleteMsg = async (messageId) => {
         await deleteMessage(token, messageId);
-        // await fetchMessages(); // Refresh after delete
     };
 
-    // Pusher real-time handlers
     const newMessage = (data) => {
-        console.log(data);
         setMessages((prev) => [...prev, data]);
     };
 
     const updateMessageHandler = (data) => {
-        setMessages((prev) => {
-            const updated = prev.map((msg) =>
+        setMessages((prev) =>
+            prev.map((msg) =>
                 msg.id === data.id ? { ...msg, text: data.text } : msg
-            );
-            console.log("updated messages", updated);
-            return updated;
-        });
+            )
+        );
     };
 
     const deleteMessageHandler = (data) => {
         setMessages((prev) => prev.filter((msg) => msg.id !== data.id));
     };
 
-    // Pusher setup
     useEffect(() => {
         const users = [authUserId, userId].sort();
-        const channelName = "chat." + users[0] + "." + users[1];
+        const channelName = `chat.${users[0]}.${users[1]}`;
 
         const pusher = new Pusher(process.env.REACT_APP_PUSHER_APP_KEY, {
             cluster: process.env.REACT_APP_PUSHER_APP_CLUSTER,
         });
 
         const channel = pusher.subscribe(channelName);
-
         channel.bind("new-message", newMessage);
         channel.bind("update-message", updateMessageHandler);
         channel.bind("delete-message", deleteMessageHandler);
@@ -141,23 +131,15 @@ const Conversation = () => {
                         {receiver.first_name} {receiver.last_name}
                     </div>
                 )}
-                {messages.length === 0 && (
-                    <div className="flex flex-col items-start justify-start">
-                        <div className="text-lg font-medium">
-                            No messages...
-                        </div>
-                    </div>
+                {!messages.length && (
+                    <div className="text-lg font-medium">No messages...</div>
                 )}
             </div>
 
-            {/* Messages container */}
             <div className="flex flex-col flex-grow overflow-y-auto space-y-3 mb-4 pr-2 hide-scrollbar max-h-[70vh]">
                 {messages.map((msg) => {
-                    console.log("Rendering message", msg);
-
-                    console.log("Rendering message", msg.id, msg.text);
-
                     const isSender = msg.sender_id !== authUserId;
+
                     return (
                         <div
                             key={msg.id}
@@ -170,7 +152,6 @@ const Conversation = () => {
                             {editingId === msg.id && isSender ? (
                                 <>
                                     <textarea
-                                        placeholder="Edit your message..."
                                         value={editingText}
                                         onChange={(e) =>
                                             setEditingText(e.target.value)
@@ -219,10 +200,9 @@ const Conversation = () => {
                         </div>
                     );
                 })}
-                <div ref={bottomRef} /> {/* 👈 Scroll anchor */}
+                <div ref={bottomRef} />
             </div>
 
-            {/* Input area */}
             <div className="flex space-x-2 py-4">
                 <input
                     type="text"

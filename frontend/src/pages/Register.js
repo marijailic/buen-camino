@@ -3,50 +3,31 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCsrfCookie, register } from "../api/authApi";
+import { validateRegister } from "../utils/validation";
 
 const Register = () => {
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [form, setForm] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+    });
+
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
+
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        setForm((prevForm) => ({
+            ...prevForm,
+            [id]: value,
+        }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const validationErrors = {};
-
-        if (!firstName) {
-            validationErrors.firstName = "First name is required.";
-        } else if (firstName.length > 255) {
-            validationErrors.firstName =
-                "First name must be max 255 characters.";
-        }
-
-        if (!lastName) {
-            validationErrors.lastName = "Last name is required.";
-        } else if (lastName.length > 255) {
-            validationErrors.lastName = "Last name must be max 255 characters.";
-        }
-
-        if (!email) {
-            validationErrors.email = "Email is required.";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            validationErrors.email = "Email format is invalid.";
-        } else if (email.length > 255) {
-            validationErrors.email = "Email must be max 255 characters.";
-        }
-
-        if (!password) {
-            validationErrors.password = "Password is required.";
-        } else if (password.length < 8) {
-            validationErrors.password =
-                "Password must be at least 8 characters.";
-        } else if (password.length > 255) {
-            validationErrors.password = "Password must be max 255 characters.";
-        }
-
+        const validationErrors = validateRegister(form);
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
@@ -57,15 +38,14 @@ const Register = () => {
         try {
             await getCsrfCookie();
             await register({
-                first_name: firstName,
-                last_name: lastName,
-                email,
-                password,
+                first_name: form.firstName,
+                last_name: form.lastName,
+                email: form.email,
+                password: form.password,
             });
 
             navigate("/login");
         } catch (error) {
-            console.error("Registration error:", error);
             setErrors({
                 general: "Registration failed. Please check your data.",
             });
@@ -79,11 +59,14 @@ const Register = () => {
                 <div className="text-2xl font-bold">BUEN CAMINO</div>
                 <h2 className="text-l font-bold mb-6 text-center">Register</h2>
             </div>
+
             <div className="w-full max-w-md px-6 bg-white rounded text-black">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {errors.general && (
                         <p className="text-red-500 text-sm">{errors.general}</p>
                     )}
+
+                    {/* First Name */}
                     <div>
                         <label
                             htmlFor="firstName"
@@ -94,8 +77,8 @@ const Register = () => {
                         <input
                             id="firstName"
                             type="text"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
+                            value={form.firstName}
+                            onChange={handleChange}
                             className="w-full border border-gray-300 rounded px-3 py-2"
                         />
                         {errors.firstName && (
@@ -104,6 +87,8 @@ const Register = () => {
                             </p>
                         )}
                     </div>
+
+                    {/* Last Name */}
                     <div>
                         <label
                             htmlFor="lastName"
@@ -114,8 +99,8 @@ const Register = () => {
                         <input
                             id="lastName"
                             type="text"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
+                            value={form.lastName}
+                            onChange={handleChange}
                             className="w-full border border-gray-300 rounded px-3 py-2"
                         />
                         {errors.lastName && (
@@ -124,6 +109,8 @@ const Register = () => {
                             </p>
                         )}
                     </div>
+
+                    {/* Email */}
                     <div>
                         <label
                             htmlFor="email"
@@ -134,8 +121,8 @@ const Register = () => {
                         <input
                             id="email"
                             type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={form.email}
+                            onChange={handleChange}
                             className="w-full border border-gray-300 rounded px-3 py-2"
                         />
                         {errors.email && (
@@ -144,6 +131,8 @@ const Register = () => {
                             </p>
                         )}
                     </div>
+
+                    {/* Password */}
                     <div>
                         <label
                             htmlFor="password"
@@ -154,8 +143,8 @@ const Register = () => {
                         <input
                             id="password"
                             type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            value={form.password}
+                            onChange={handleChange}
                             className="w-full border border-gray-300 rounded px-3 py-2"
                         />
                         {errors.password && (
@@ -164,6 +153,7 @@ const Register = () => {
                             </p>
                         )}
                     </div>
+
                     <button
                         type="submit"
                         className="w-full bg-black text-white py-2 rounded"

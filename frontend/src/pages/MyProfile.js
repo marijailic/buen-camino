@@ -8,7 +8,7 @@ import {
     deletePost,
     updatePost,
 } from "../api/postsApi";
-import { useAuth } from "../context/auth/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const MyProfile = () => {
     const { token, authUserId } = useAuth();
@@ -16,33 +16,58 @@ const MyProfile = () => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [formError, setFormError] = useState("");
 
     const [newPostText, setNewPostText] = useState("");
     const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
 
     const [editingId, setEditingId] = useState(null);
     const [editingText, setEditingText] = useState("");
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchProfileAndPosts = async () => {
             try {
                 setLoading(true);
-                const userRes = await getUser(token, authUserId);
-                const postRes = await getPostsByUser(token, authUserId);
+                const [userRes, postsRes] = await Promise.all([
+                    getUser(token, authUserId),
+                    getPostsByUser(token, authUserId),
+                ]);
                 setUser(userRes.data);
-                setPosts(postRes.data.data);
+                setPosts(postsRes.data.data);
             } catch (err) {
-                console.error(err);
+                console.error("Profile fetch error:", err);
                 setError("Failed to load profile.");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchProfile();
+        fetchProfileAndPosts();
     }, [token, authUserId]);
 
-    const handlePostSubmit = async () => {
+    const refreshPosts = async () => {
+        try {
+            const res = await getPostsByUser(token, authUserId);
+            setPosts(res.data.data);
+        } catch (err) {
+            console.error("Failed to refresh posts:", err);
+        }
+    };
+
+    const handleCreatePost = async () => {
+        if (!newPostText.trim() && !imageFile) {
+            setFormError("Please write something or select an image.");
+            return;
+        }
+
+        if (!newPostText.trim() && imageFile) {
+            setFormError("Please write something, cannot upload picture only.");
+            return;
+        }
+
+        setFormError("");
+
         try {
             await createPost(token, {
                 text: newPostText,
@@ -51,55 +76,53 @@ const MyProfile = () => {
             });
             setNewPostText("");
             setImageFile(null);
-            const updatedPosts = await getPostsByUser(token, authUserId);
-            setPosts(updatedPosts.data.data);
+            refreshPosts();
         } catch (err) {
-            console.error(err);
+            console.error("Post creation failed:", err);
+            setFormError("Failed to create post. Please try again.");
         }
     };
 
-    const startEdit = (id, text) => {
-        setEditingId(id);
-        setEditingText(text);
+    const handleEditPost = async (id) => {
+        try {
+            await updatePost(token, id, { text: editingText });
+            setEditingId(null);
+            refreshPosts();
+        } catch (err) {
+            console.error("Post update failed:", err);
+        }
     };
 
-    const handleUpdate = async (id) => {
-        await updatePost(token, id, { text: editingText });
-        setEditingId(null);
-        const updatedPosts = await getPostsByUser(token, authUserId);
-        setPosts(updatedPosts.data.data);
-    };
-
-    const handleDelete = async (id) => {
-        await deletePost(token, id);
-        const updatedPosts = await getPostsByUser(token, authUserId);
-        setPosts(updatedPosts.data.data);
+    const handleDeletePost = async (id) => {
+        try {
+            await deletePost(token, id);
+            refreshPosts();
+        } catch (err) {
+            console.error("Post deletion failed:", err);
+        }
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center">
-                <div className="text-lg font-medium">Loading profile...</div>
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-lg font-medium">Loading profile...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center">
-                <div className="text-red-500">{error}</div>
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-red-500">{error}</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col px-6 bg-gray-100">
-            <div className="mt-6 mb-1 flex items-center justify-between text-2xl font-bold">
-                <div>My Profile</div>
-            </div>
+        <div className="min-h-screen px-6 py-6 bg-gray-100">
+            <h1 className="text-2xl font-bold mb-4">My Profile</h1>
 
-            {/* New Post Input */}
-            <div className="bg-white p-4 rounded shadow w-full mt-6 mb-6">
+            <div className="bg-white p-4 rounded shadow mb-6">
                 <textarea
                     placeholder="What's on your mind?"
                     value={newPostText}
@@ -107,29 +130,49 @@ const MyProfile = () => {
                     className="w-full border border-gray-300 rounded px-3 py-2 mb-2 resize-none"
                     rows={3}
                 />
+                {formError && (
+                    <p className="text-red-500 text-sm mb-2">{formError}</p>
+                )}
                 <div className="flex items-center justify-between">
                     <label className="bg-black text-white py-2 px-4 rounded cursor-pointer">
                         Upload an image
                         <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => setImageFile(e.target.files[0])}
+                            onChange={(e) => {
+                                const file = e.target.files[0];
+                                setImageFile(file);
+                                if (file) {
+                                    setImagePreview(URL.createObjectURL(file));
+                                } else {
+                                    setImagePreview(null);
+                                }
+                            }}
                             className="hidden"
                         />
                     </label>
                     <button
-                        onClick={handlePostSubmit}
+                        onClick={handleCreatePost}
                         className="bg-black text-white py-2 px-4 rounded"
                     >
                         Post
                     </button>
                 </div>
+                {imageFile && (
+                    // <div className="mt-2 flex items-center gap-4">
+                    //     <img
+                    //         src={imagePreview}
+                    //         alt="Selected"
+                    //         className="w-20 h-20 object-cover rounded border"
+                    //     />
+                    <p className="text-sm text-gray-600">{imageFile.name}</p>
+                    // </div>
+                )}
             </div>
 
-            {/* Posts List */}
             <div
-                className="flex flex-col gap-2 overflow-y-auto pr-2 hide-scrollbar"
-                style={{ maxHeight: "calc(100vh - 320px)" }}
+                className="flex flex-col gap-3 overflow-y-auto hide-scrollbar pr-2"
+                style={{ maxHeight: "calc(100vh - 350px)" }}
             >
                 {posts.map((post) => (
                     <div
@@ -146,8 +189,10 @@ const MyProfile = () => {
                                     className="w-full border border-gray-300 rounded px-3 py-2 mb-2 resize-none"
                                     rows={3}
                                 />
-                                <div className="flex space-x-4 text-sm underline cursor-pointer opacity-80 hover:opacity-100">
-                                    <span onClick={() => handleUpdate(post.id)}>
+                                <div className="flex gap-4 text-sm underline cursor-pointer opacity-80 hover:opacity-100">
+                                    <span
+                                        onClick={() => handleEditPost(post.id)}
+                                    >
                                         Save
                                     </span>
                                     <span onClick={() => setEditingId(null)}>
@@ -157,9 +202,9 @@ const MyProfile = () => {
                             </>
                         ) : (
                             <>
-                                <div className="text-base whitespace-pre-wrap">
+                                <p className="text-base whitespace-pre-wrap">
                                     {post.text}
-                                </div>
+                                </p>
                                 {post.image_url && (
                                     <img
                                         src={post.image_url}
@@ -167,15 +212,20 @@ const MyProfile = () => {
                                         className="mt-2 rounded max-h-64 object-cover"
                                     />
                                 )}
-                                <div className="flex space-x-4 mt-1 text-xs underline cursor-pointer opacity-80 hover:opacity-100">
+                                <div className="flex gap-4 mt-2 text-xs underline cursor-pointer opacity-80 hover:opacity-100">
                                     <span
-                                        onClick={() =>
-                                            startEdit(post.id, post.text)
-                                        }
+                                        onClick={() => {
+                                            setEditingId(post.id);
+                                            setEditingText(post.text);
+                                        }}
                                     >
                                         Edit
                                     </span>
-                                    <span onClick={() => handleDelete(post.id)}>
+                                    <span
+                                        onClick={() =>
+                                            handleDeletePost(post.id)
+                                        }
+                                    >
                                         Delete
                                     </span>
                                 </div>

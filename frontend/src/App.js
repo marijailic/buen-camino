@@ -1,10 +1,10 @@
 // src/App.js
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/auth/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 
-import PublicRoute from "./context/auth/PublicRoute";
-import ProtectedRoute from "./context/auth/ProtectedRoute";
+import PublicRoute from "./utils/auth/PublicRoute";
+import ProtectedRoute from "./utils/auth/ProtectedRoute";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 
 import Welcome from "./pages/Welcome";
