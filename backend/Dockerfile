@@ -14,7 +14,8 @@ ENV APP_DEBUG false
 ENV LOG_CHANNEL stderr
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-RUN composer install --no-dev --optimize-autoloader
+RUN composer require fakerphp/faker --no-interaction --no-scripts \
+    && composer install --no-dev --optimize-autoloader
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
