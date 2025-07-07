@@ -10,7 +10,8 @@ class AuthControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
-    public function testRegister(): void
+    // register
+    public function testShouldRegisterUser(): void
     {
         $newUserData = [
             'first_name' => fake()->firstName(),
@@ -36,7 +37,8 @@ class AuthControllerTest extends TestCase
         ]);
     }
 
-    public function testLogin(): void
+    // login
+    public function testShouldLogUserIn(): void
     {
         $password = 'password';
         $user = User::factory()->create([
@@ -62,7 +64,8 @@ class AuthControllerTest extends TestCase
         ]);
     }
 
-    public function testLogout(): void
+    // logout
+    public function testShouldLogUserOut(): void
     {
         $user = User::factory()->create();
         $user->createToken('auth_token')->plainTextToken;

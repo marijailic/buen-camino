@@ -20,14 +20,14 @@ class UserControllerTest extends TestCase
     }
 
     // index
-    public function testShouldReturnUsersNearPulaWithinConfiguredDistance(): void
+    public function testShouldRetrieveNearbyUsersWithinConfiguredDistance(): void
     {
         DB::table('users')->truncate();
 
         // Pula
         $authUser = User::factory()->create([
-            'latitude' => 44.8666,
-            'longitude' => 13.8496,
+            'latitude' => 44.8683,
+            'longitude' => 13.8480,
         ]);
 
         // Pula ~10km
@@ -39,8 +39,8 @@ class UserControllerTest extends TestCase
 
         // Zagreb
         $farUser = User::factory()->create([
-            'latitude' => 45.8150,
-            'longitude' => 15.9819,
+            'latitude' => 45.8153,
+            'longitude' => 15.9665,
             'updated_at' => now(),
         ]);
 
@@ -54,7 +54,8 @@ class UserControllerTest extends TestCase
         $response->assertJsonMissing(['id' => $farUser->id]);
     }
 
-    public function testShow(): void
+    // show
+    public function testShouldRetrieveUserById(): void
     {
         $response = $this->actingAs($this->user)
             ->getJson(route('users.show', $this->user->id));
@@ -67,7 +68,8 @@ class UserControllerTest extends TestCase
             ]);
     }
 
-    public function testUpdate(): void
+    // update
+    public function testShouldUpdateUsersEmail(): void
     {
         $updatedUserData = [
             'email' => fake()->unique()->safeEmail(),
@@ -92,7 +94,8 @@ class UserControllerTest extends TestCase
         ]);
     }
 
-    public function testDestroySoftDeletesUser(): void
+    // destroy
+    public function testShouldSoftDeleteUser(): void
     {
         $response = $this->actingAs($this->user)
             ->deleteJson(route('users.destroy', $this->user->id));
@@ -107,20 +110,21 @@ class UserControllerTest extends TestCase
         ]);
     }
 
+    // updateLocation
     public function testShouldUpdateUserLocation(): void
     {
         // Pula
         $user = User::factory()->create([
-            'latitude' => 44.8666,
-            'longitude' => 13.8496,
+            'latitude' => 44.8683,
+            'longitude' => 13.8480,
         ]);
 
         $this->actingAs($user);
 
         // Zagreb
         $newLocation = [
-            'latitude' => 45.8150,
-            'longitude' => 15.9819,
+            'latitude' => 45.8153,
+            'longitude' => 15.9665,
         ];
 
         $response = $this->postJson(route('users.updateLocation'), $newLocation);

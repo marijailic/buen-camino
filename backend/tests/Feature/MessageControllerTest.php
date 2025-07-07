@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Message;
 use App\Models\User;
+use App\Services\PusherService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
@@ -21,7 +22,8 @@ class MessageControllerTest extends TestCase
         $this->actingAs($this->user);
     }
 
-    public function testMessagesByReceiver(): void
+    // getByReceiver
+    public function testShouldReturnAllMessagesBetweenAuthenticatedUserAndReceiver(): void
     {
         $receiver = User::factory()->create();
 
@@ -58,85 +60,71 @@ class MessageControllerTest extends TestCase
         }
     }
 
-    public function testShouldReturnAllReceiverIdsExcludingAuthenticatedUser(): void
+    // getAllReceivers
+    public function testShouldReturnUniqueUserIdsFromConversationsExcludingAuthenticatedUser(): void
     {
         $userA = User::factory()->create();
         $userB = User::factory()->create();
         $userC = User::factory()->create();
 
-        Message::factory()->create([
-            'sender_id' => $this->user->id,
-            'receiver_id' => $userA->id,
-        ]);
+        Message::factory()->create(['sender_id' => $this->user->id, 'receiver_id' => $userA->id]);
+        Message::factory()->create(['sender_id' => $this->user->id, 'receiver_id' => $userB->id]);
+        Message::factory()->create(['sender_id' => $userC->id, 'receiver_id' => $this->user->id]);
+        Message::factory()->create(['sender_id' => $this->user->id, 'receiver_id' => $userA->id]);
 
-        Message::factory()->create([
-            'sender_id' => $this->user->id,
-            'receiver_id' => $userB->id,
-        ]);
+        $response = $this->getJson(route('messages.getAllReceivers'));
 
-        Message::factory()->create([
-            'sender_id' => $userC->id,
-            'receiver_id' => $this->user->id,
-        ]);
+        $response->assertOk()->assertJsonStructure(['receiver_ids']);
 
-        Message::factory()->create([
-            'sender_id' => $this->user->id,
-            'receiver_id' => $userA->id,
-        ]);
+        $actualReceiverIds = $response->json('receiver_ids');
+        $expectedReceiverIds = [$userA->id, $userB->id, $userC->id];
 
-        $response = $this->getJson(
-            route('messages.getAllReceivers')
-        );
-
-        $response
-            ->assertOk()
-            ->assertJsonStructure([
-            'receiver_ids'
-        ]);
-
-        $receiverIds = $response->json('receiver_ids');
-
-        $expectedIds = [
-            $userA->id,
-            $userB->id,
-            $userC->id,
-        ];
-
-        $this->assertCount(3, $receiverIds);
-        $this->assertEqualsCanonicalizing($expectedIds, $receiverIds);
+        $this->assertCount(3, $actualReceiverIds);
+        $this->assertEqualsCanonicalizing($expectedReceiverIds, $actualReceiverIds);
     }
 
-    public function testStore(): void
+    // store
+    public function testShouldStoreMessageAndTriggerPusherEvent(): void
     {
         $receiver = User::factory()->create();
-        $message = fake()->paragraph;
+        $messageText = fake()->paragraph();
 
-        $newMsgData = [
-            'text' => $message,
+        $messageData = [
+            'text' => $messageText,
             'sender_id' => $this->user->id,
             'receiver_id' => $receiver->id,
         ];
 
-        $response = $this->postJson(route('messages.store'), $newMsgData);
+        $this->mock(PusherService::class)
+            ->shouldReceive('newChatMessage')
+            ->once()
+            ->withArgs(function ($id, $text, $senderId, $receiverId) use ($messageText) {
+                return $text === $messageText
+                    && $senderId === $this->user->id
+                    && $receiverId !== null;
+            });
+
+        $response = $this->postJson(route('messages.store'), $messageData);
 
         $response->assertCreated()
             ->assertJson([
                 'message' => 'Message created successfully',
                 'data' => [
-                    'text' => $message,
+                    'text' => $messageText,
                     'sender_id' => $this->user->id,
                     'receiver_id' => $receiver->id,
                 ],
             ]);
 
         $this->assertDatabaseHas('messages', [
-            'text' => $message,
+            'text' => $messageText,
             'sender_id' => $this->user->id,
             'receiver_id' => $receiver->id,
         ]);
     }
 
-    public function testShow(): void
+    // show
+    public function testShouldRetrieveMessageByMessageId(): void
     {
         $message = Message::factory()->create([
             'sender_id' => $this->user->id,
@@ -155,17 +143,32 @@ class MessageControllerTest extends TestCase
                 ]);
     }
 
-    public function testUpdate(): void
+    // update
+    public function testShouldUpdateMessageAndTriggerPusherEvent(): void
     {
         $msg = Message::factory()->create();
+
+        $updatedText = fake()->paragraph();
+
         $updatedMsg = [
-            'text' => fake()->paragraph(),
+            'text' => $updatedText,
             'sender_id' => $msg->sender_id,
             'receiver_id' => $msg->receiver_id,
         ];
 
+        $this->mock(PusherService::class)
+            ->shouldReceive('updateChatMessage')
+            ->once()
+            ->withArgs(function ($id, $text, $senderId, $receiverId) use ($msg, $updatedText) {
+                return $id === $msg->id
+                    && $text === $updatedText
+                    && $senderId === $msg->sender_id
+                    && $receiverId === $msg->receiver_id;
+            });
+
         $response = $this->putJson(
-            route('messages.update', $msg->id), $updatedMsg
+            route('messages.update', $msg->id),
+            $updatedMsg
         );
 
         $response->assertOk()
@@ -173,21 +176,31 @@ class MessageControllerTest extends TestCase
                 'message' => 'Message updated successfully',
                 'data' => [
                     'id' => $msg->id,
-                    'text' => $updatedMsg['text'],
+                    'text' => $updatedText,
                 ],
             ]);
 
         $this->assertDatabaseHas('messages', [
             'id' => $msg->id,
-            'text' => $updatedMsg['text'],
+            'text' => $updatedText,
         ]);
     }
 
-    public function testDestroy(): void
+    // destroy
+    public function testShouldDeleteMessageAndTriggerPusherEvent(): void
     {
         $message = Message::factory()->create([
             'sender_id' => $this->user->id,
         ]);
+
+        $this->mock(PusherService::class)
+            ->shouldReceive('deleteChatMessage')
+            ->once()
+            ->withArgs(function ($id, $senderId, $receiverId) use ($message) {
+                return $id === $message->id
+                    && $senderId === $message->sender_id
+                    && $receiverId === $message->receiver_id;
+            });
 
         $response = $this->deleteJson(
             route('messages.destroy', $message->id)

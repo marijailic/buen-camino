@@ -12,6 +12,8 @@ use Illuminate\Http\JsonResponse;
 
 class MessageController extends Controller
 {
+    public function __construct(private PusherService $pusherService) {}
+
     public function getByReceiver(string $userId): JsonResponse
     {
         $authUserId = auth()->id();
@@ -56,7 +58,7 @@ class MessageController extends Controller
     {
         $message = Message::create($request->validated());
 
-        PusherService::newChatMessage(
+        $this->pusherService->newChatMessage(
             $message->id,
             $message->text,
             $message->sender_id,
@@ -80,7 +82,7 @@ class MessageController extends Controller
     {
         $message->update($request->validated());
 
-        PusherService::updateChatMessage(
+        $this->pusherService->updateChatMessage(
             $message->id,
             $message->text,
             $message->sender_id,
@@ -97,7 +99,7 @@ class MessageController extends Controller
     {
         $message->delete();
 
-        PusherService::deleteChatMessage(
+        $this->pusherService->deleteChatMessage(
             $message->id,
             $message->sender_id,
             $message->receiver_id

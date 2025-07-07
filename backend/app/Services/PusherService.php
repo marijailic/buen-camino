@@ -6,7 +6,7 @@ use Pusher\Pusher;
 
 class PusherService
 {
-    public static function newChatMessage(string $id, string $message, string $userId1, string $userId2): void
+    public function newChatMessage(string $id, string $message, string $userId1, string $userId2): void
     {
         $users = [$userId1, $userId2];
         sort($users); // Ensure consistent channel naming
@@ -19,7 +19,7 @@ class PusherService
         ]);
     }
 
-    public static function updateChatMessage(string $messageId, string $message, string $userId1, string $userId2): void
+    public function updateChatMessage(string $messageId, string $message, string $userId1, string $userId2): void
     {
         $users = [$userId1, $userId2];
         sort($users); // Ensure consistent channel naming
@@ -32,7 +32,7 @@ class PusherService
         ]);
     }
 
-    public static function deleteChatMessage(string $messageId, string $userId1, string $userId2): void
+    public function deleteChatMessage(string $messageId, string $userId1, string $userId2): void
     {
         $users = [$userId1, $userId2];
         sort($users); // Ensure consistent channel naming

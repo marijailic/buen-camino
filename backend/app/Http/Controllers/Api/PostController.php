@@ -12,6 +12,8 @@ use Illuminate\Http\JsonResponse;
 
 class PostController extends Controller
 {
+    public function __construct(private CloudinaryService $cloudinaryService) {}
+
     public function getByUser(User $user): JsonResponse
     {
         $posts = $user->posts()->latest()->get();
@@ -23,7 +25,7 @@ class PostController extends Controller
             }
 
             try {
-                $post->image_url = CloudinaryService::getImageUrl($post->id);
+                $post->image_url = $this->cloudinaryService->getImageUrl($post->id);
             } catch (\Exception $e) {
                 $post->image_url = null;
             }
@@ -44,7 +46,7 @@ class PostController extends Controller
 
             $post->has_image = true;
             $post->save();
-            CloudinaryService::storeImage($post->id, base64_encode($imageContents));
+            $this->cloudinaryService->storeImage($post->id, base64_encode($imageContents));
         }
 
         return response()->json([
@@ -56,7 +58,7 @@ class PostController extends Controller
     public function show(Post $post): JsonResponse
     {
         try {
-            $imageUrl = CloudinaryService::getImageUrl($post->id);
+            $imageUrl = $this->cloudinaryService->getImageUrl($post->id);
         } catch (\Exception $e) {
             $imageUrl = null;
         }

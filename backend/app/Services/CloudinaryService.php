@@ -8,7 +8,7 @@ use Cloudinary\Configuration\Configuration;
 
 class CloudinaryService
 {
-    public static function storeImage(string $publicId, string $base64Image)
+    public function storeImage(string $publicId, string $base64Image)
     {
         $cloudinaryKey = config('services.cloudinary.key');
         $cloudinarySecret = config('services.cloudinary.secret');
@@ -25,7 +25,7 @@ class CloudinaryService
         ]);
     }
 
-    public static function getImageUrl($publicId)
+    public function getImageUrl($publicId)
     {
         $cloudinaryKey = config('services.cloudinary.key');
         $cloudinarySecret = config('services.cloudinary.secret');
